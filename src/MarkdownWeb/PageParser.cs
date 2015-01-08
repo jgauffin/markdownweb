@@ -19,6 +19,18 @@ namespace MarkdownWeb
     ///         It's a quick hack, but it works and that is currently enough for me.
     ///     </para>
     /// </remarks>
+
+    /// <summary>
+    ///     This code is not beatiful. In fact, it's UGLY. Oooh so ugly.
+    /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         If you want to make it more beatiful, go ahead. Please do. I beg you.
+    ///     </para>
+    ///     <para>
+    ///         It's a quick hack, but it works and that is currently enough for me.
+    ///     </para>
+    /// </remarks>
     public class PageParser
     {
         private readonly string _rootDirectory;
@@ -43,7 +55,7 @@ namespace MarkdownWeb
 
             var page = new ParsedPage();
 
-            var pos = str.IndexOfAny(new[] {'\r', '\n'});
+            var pos = str.IndexOfAny(new[] { '\r', '\n' });
             page.Title = pos != -1 ? str.Substring(0, pos).TrimStart('#', ' ', '\t') : "";
             page.Body = markdown.Transform(str);
             return page;
@@ -83,10 +95,8 @@ namespace MarkdownWeb
 
         private string GetFullPath(string url)
         {
-            if (url.StartsWith("doc/"))
-                url = url.Remove(0, 4);
-            if (url.StartsWith("/doc/"))
-                url = url.Remove(0, 5);
+            if (url.TrimStart('/').StartsWith(_rootUri.Trim('/')))
+                url = url.TrimStart('/').Substring(0, _rootUri.Trim('/').Length).TrimStart('/');
 
             var fullPath = Path.Combine(_rootDirectory, url.Replace('/', '\\'));
             if (Directory.Exists(fullPath))
@@ -103,13 +113,11 @@ namespace MarkdownWeb
                 url = url.Remove(0, _currentUrlPath.Length).TrimStart('/');
             if (url.StartsWith('/' + _currentUrlPath))
                 url = url.Remove(0, _currentUrlPath.Length + 1).TrimStart('/');
-            if (url.StartsWith("doc/"))
-                Debugger.Break();
 
             var basePath = _currentFilePath;
-            if (url.StartsWith("/doc/"))
+            if (url.StartsWith(_rootUri))
             {
-                url = url.Remove(0, 5);
+                url = url.Remove(0, _rootUri.Length);
                 basePath = _rootDirectory;
             }
 
@@ -193,7 +201,7 @@ namespace MarkdownWeb
                 sb.Append(text.Substring(lastPos, pos - lastPos));
                 sb.AppendLine();
                 pos += 5;
-                var nlPos = text.IndexOfAny(new[] {'\r', '\n'}, pos);
+                var nlPos = text.IndexOfAny(new[] { '\r', '\n' }, pos);
                 var codeLang = text.Substring(pos, nlPos - pos);
 
 
