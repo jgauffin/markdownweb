@@ -1,0 +1,8 @@
+﻿@model MarkdownWeb.ParsedPage
+@{
+    ViewBag.Title = Model.Title;
+}
+
+<div class="doc-pages">
+    @Html.Raw(Model.Body)
+</div>
