@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -19,7 +19,6 @@ namespace MarkdownWeb
     ///         It's a quick hack, but it works and that is currently enough for me.
     ///     </para>
     /// </remarks>
-
     /// <summary>
     ///     This code is not beatiful. In fact, it's UGLY. Oooh so ugly.
     /// </summary>
@@ -35,17 +34,29 @@ namespace MarkdownWeb
     {
         private readonly string _rootDirectory;
         private readonly string _rootUri;
-        private string _currentFilePath;
         private string _currentUrlPath;
+        private IPageSource _pageSource;
+        private Func<string, string> _virtualPathHandler = url => VirtualPathUtility.ToAbsolute(url);
 
         public PageParser(string rootDirectory, string rootUri)
         {
             _rootDirectory = rootDirectory;
             _rootUri = rootUri.Trim('/');
+            _pageSource = new PageSource(rootUri, rootDirectory);
         }
 
-        public ParsedPage ParseString(string str)
+        /// <summary>
+        /// Used to convert our local urls to website urls
+        /// </summary>
+        public Func<string, string> VirtualPathHandler
         {
+            get { return _virtualPathHandler; }
+            set { _virtualPathHandler = value; }
+        }
+
+        public ParsedPage ParseString(string url, string document)
+        {
+            _currentUrlPath = url.Trim('/');
             var markdown = new Markdown
             {
                 PrepareLink = OnHtmlLink,
@@ -53,83 +64,23 @@ namespace MarkdownWeb
                 FormatCodeBlock = OnCodeBlock
             };
 
+            var source = new PageSource(_rootUri, _rootDirectory);
             var page = new ParsedPage();
-
-            var pos = str.IndexOfAny(new[] { '\r', '\n' });
-            page.Title = pos != -1 ? str.Substring(0, pos).TrimStart('#', ' ', '\t') : "";
-            page.Body = markdown.Transform(str);
+            document = PreParseGithubCodeBlocks2(document);
+            document = PreParseGithubTables(document);
+            var pos = document.IndexOfAny(new[] { '\r', '\n' });
+            page.Title = pos != -1 ? document.Substring(0, pos).TrimStart('#', ' ', '\t') : "";
+            page.Body = markdown.Transform(document) + "<br>" + _rootUri + "<br>" + source.GetAbsoluteUrl(url, "Applikationer") + "<br>" + url;
             return page;
         }
 
         public ParsedPage ParseUrl(string url)
         {
-            url = url == null
-                ? ""
-                : url.Trim('/');
-
-
-            if (url.StartsWith(_rootUri))
-                url = url.Remove(0, _rootUri.Length).Trim('/');
-
-            var path = GetFullPath(url);
-
-            //direct link
-            if (!path.EndsWith("index.md"))
-            {
-                var pos = url.LastIndexOf('/');
-                if (pos == -1)
-                    _currentUrlPath = "/";
-                else
-                    _currentUrlPath = url.Substring(0, pos);
-            }
-            else
-                _currentUrlPath = url;
-
-            _currentFilePath = Path.GetDirectoryName(path);
-
-            var text = File.ReadAllText(path);
-            text = PreParseGithubCodeBlocks2(text);
-            text = PreParseGithubTables(text);
-            return ParseString(text);
+            _currentUrlPath = url.Trim('/');
+            var text = _pageSource.GetContent(url);
+            return ParseString(_currentUrlPath, text);
         }
 
-        private string GetFullPath(string url)
-        {
-            if (url.TrimStart('/').StartsWith(_rootUri.Trim('/')))
-                url = url.TrimStart('/').Substring(0, _rootUri.Trim('/').Length).TrimStart('/');
-
-            var fullPath = Path.Combine(_rootDirectory, url.Replace('/', '\\'));
-            if (Directory.Exists(fullPath))
-                fullPath = Path.Combine(fullPath, "index.md");
-            else if (!fullPath.EndsWith(".md"))
-                fullPath += ".md";
-
-            return fullPath;
-        }
-
-        private string GetLinkPath(string url)
-        {
-            if (url.StartsWith(_currentUrlPath))
-                url = url.Remove(0, _currentUrlPath.Length).TrimStart('/');
-            if (url.StartsWith('/' + _currentUrlPath))
-                url = url.Remove(0, _currentUrlPath.Length + 1).TrimStart('/');
-
-            var basePath = _currentFilePath;
-            if (url.StartsWith(_rootUri))
-            {
-                url = url.Remove(0, _rootUri.Length);
-                basePath = _rootDirectory;
-            }
-
-            var fullPath = Path.Combine(basePath, url.Replace('/', '\\'));
-
-            if (Directory.Exists(fullPath))
-                fullPath = Path.Combine(fullPath, "index.md");
-            else if (!fullPath.EndsWith(".md"))
-                fullPath += ".md";
-
-            return fullPath;
-        }
 
         private string GithubCodeReplacer(Match match)
         {
@@ -149,22 +100,21 @@ namespace MarkdownWeb
             var src = arg.attributes["href"];
             if (src.StartsWith("http"))
                 return false;
-
             if (src.StartsWith("~"))
             {
-                src = VirtualPathUtility.ToAbsolute(src);
+                src = VirtualPathHandler(src);
                 arg.attributes["href"] = src;
                 return true;
             }
 
             if (!src.StartsWith("/"))
             {
-                var fixedSrc = VirtualPathUtility.ToAbsolute("~/" + _rootUri + "/" + _currentUrlPath + "/" + src);
-                arg.attributes["href"] = fixedSrc;
+                src = _pageSource.GetAbsoluteUrl(_currentUrlPath, src);
+                arg.attributes["href"] = VirtualPathHandler("~/" + _rootUri + "/" + src);
             }
 
-            var path = GetLinkPath(src);
-            if (!File.Exists(path))
+            var exists = _pageSource.PageExists(src);
+            if (!exists)
                 arg.attributes["style"] = "color: red";
 
             return true;
@@ -172,20 +122,21 @@ namespace MarkdownWeb
 
         private bool OnImageLink(HtmlTag arg1, bool arg2)
         {
-            if (!arg1.attributes["src"].Contains("/"))
+            var src = arg1.attributes["src"];
+            if (src.StartsWith("http"))
+                return false;
+
+            if (src.StartsWith("~"))
             {
-                var url = string.Format(_rootUri + "?image={0}/{1}", _currentUrlPath, arg1.attributes["src"]);
-                arg1.attributes["src"] = VirtualPathUtility.ToAbsolute(url);
+                //var url = string.Format(_rootUri + "?image={0}/{1}", _currentUrlPath, arg1.attributes["src"]);
+                arg1.attributes["src"] = VirtualPathHandler(src);
+                return true;
             }
 
-
+            src = _pageSource.GetAbsoluteUrl(_currentUrlPath, src);
+            var formattedUrl = string.Format(VirtualPathHandler("~/" + _rootUri) + "?image={0}", src);
+            arg1.attributes["src"] = formattedUrl;
             return true;
-        }
-
-        private string PreParseGithubCodeBlocks(string text)
-        {
-            var regex = new Regex("(\r\n|\r|\n)(```)(.+)(\r\n)", RegexOptions.Multiline);
-            return regex.Replace(text, GithubCodeReplacer).Replace("```", "</code></pre>");
         }
 
         private string PreParseGithubCodeBlocks2(string text)
