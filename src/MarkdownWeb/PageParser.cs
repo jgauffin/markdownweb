@@ -19,17 +19,6 @@ namespace MarkdownWeb
     ///         It's a quick hack, but it works and that is currently enough for me.
     ///     </para>
     /// </remarks>
-    /// <summary>
-    ///     This code is not beatiful. In fact, it's UGLY. Oooh so ugly.
-    /// </summary>
-    /// <remarks>
-    ///     <para>
-    ///         If you want to make it more beatiful, go ahead. Please do. I beg you.
-    ///     </para>
-    ///     <para>
-    ///         It's a quick hack, but it works and that is currently enough for me.
-    ///     </para>
-    /// </remarks>
     public class PageParser
     {
         private readonly string _rootDirectory;
@@ -67,11 +56,25 @@ namespace MarkdownWeb
             var source = new PageSource(_rootUri, _rootDirectory);
             var page = new ParsedPage();
             document = PreParseGithubCodeBlocks2(document);
-            document = PreParseGithubTables(document);
+            document = ConvertUrlsToLinks(document);
+            document = ConvertUncPaths(document);
             var pos = document.IndexOfAny(new[] { '\r', '\n' });
             page.Title = pos != -1 ? document.Substring(0, pos).TrimStart('#', ' ', '\t') : "";
-            page.Body = markdown.Transform(document) + "<br>" + _rootUri + "<br>" + source.GetAbsoluteUrl(url, "Applikationer") + "<br>" + url;
+            page.Body = markdown.Transform(document);
+            page.Body = PreParseGithubTables(page.Body);
+            page.Body = AnchorHeadings(page.Body);
             return page;
+        }
+
+        //credit: http://stackoverflow.com/questions/22693604/c-sharp-regex-to-parse-html-string-and-add-ids-into-each-header-tag
+        private string AnchorHeadings(string body)
+        {
+            return Regex.Replace(body, @"<h(?<number>[1-6])>(?<innerText>[^<]*)</h[1-6]>",
+                x =>
+                    string.Format("<h{2} id=\"{0}\">{1}</h{2}>",
+                        x.Groups["innerText"].Value.Trim().Replace(" ", string.Empty), 
+                        x.Groups["innerText"],
+                        x.Groups["number"]));
         }
 
         public ParsedPage ParseUrl(string url)
@@ -81,6 +84,20 @@ namespace MarkdownWeb
             return ParseString(_currentUrlPath, text);
         }
 
+        //credit: http://rickyrosario.com/blog/converting-a-url-into-a-link-in-csharp-using-regular-expressions/
+        private string ConvertUrlsToLinks(string msg)
+        {
+            string regex = @"((www\.|(http|https|ftp|news|file)+\:\/\/)[&#95;.a-z0-9-]+\.[a-z0-9\/&#95;:@=.+?,##%&~-]*[^.|\'|\# |!|\(|?|,|\s|>|<|;|\)])";
+            Regex r = new Regex(regex, RegexOptions.IgnoreCase);
+            return r.Replace(msg, "<a href=\"$1\">$1</a>").Replace("href=\"www", "href=\"http://www");
+        }
+
+        private string ConvertUncPaths(string msg)
+        {
+            var regex = @"(\\\\[A-Z_a-z\\]+)\s";
+            Regex r = new Regex(regex, RegexOptions.IgnoreCase);
+            return r.Replace(msg, "<a href=\"file://$1\">\\$1</a>");
+        }
 
         private string GithubCodeReplacer(Match match)
         {
