@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
@@ -56,13 +57,13 @@ namespace MarkdownWeb
             var source = new PageSource(_rootUri, _rootDirectory);
             var page = new ParsedPage();
             document = PreParseGithubCodeBlocks2(document);
-            document = ConvertUrlsToLinks(document);
             document = ConvertUncPaths(document);
             var pos = document.IndexOfAny(new[] { '\r', '\n' });
             page.Title = pos != -1 ? document.Substring(0, pos).TrimStart('#', ' ', '\t') : "";
             page.Body = markdown.Transform(document);
             page.Body = PreParseGithubTables(page.Body);
             page.Body = AnchorHeadings(page.Body);
+            page.Body = ConvertUrlsToLinks(page.Body);
             return page;
         }
 
@@ -72,7 +73,7 @@ namespace MarkdownWeb
             return Regex.Replace(body, @"<h(?<number>[1-6])>(?<innerText>[^<]*)</h[1-6]>",
                 x =>
                     string.Format("<h{2} id=\"{0}\">{1}</h{2}>",
-                        x.Groups["innerText"].Value.Trim().Replace(" ", string.Empty), 
+                        new String(x.Groups["innerText"].Value.Where(char.IsLetterOrDigit).ToArray()), 
                         x.Groups["innerText"],
                         x.Groups["number"]));
         }
@@ -87,9 +88,16 @@ namespace MarkdownWeb
         //credit: http://rickyrosario.com/blog/converting-a-url-into-a-link-in-csharp-using-regular-expressions/
         private string ConvertUrlsToLinks(string msg)
         {
+         
             string regex = @"((www\.|(http|https|ftp|news|file)+\:\/\/)[&#95;.a-z0-9-]+\.[a-z0-9\/&#95;:@=.+?,##%&~-]*[^.|\'|\# |!|\(|?|,|\s|>|<|;|\)])";
             Regex r = new Regex(regex, RegexOptions.IgnoreCase);
-            return r.Replace(msg, "<a href=\"$1\">$1</a>").Replace("href=\"www", "href=\"http://www");
+            return r.Replace(msg, match =>
+            {
+                if (msg[match.Index - 1] == '"')
+                    return match.Value;
+
+                return string.Format(@"<a href=""{0}"">{0}", match.Value);
+            }).Replace("href=\"www", "href=\"http://www");
         }
 
         private string ConvertUncPaths(string msg)
@@ -97,13 +105,6 @@ namespace MarkdownWeb
             var regex = @"(\\\\[A-Z_a-z\\]+)\s";
             Regex r = new Regex(regex, RegexOptions.IgnoreCase);
             return r.Replace(msg, "<a href=\"file://$1\">\\$1</a>");
-        }
-
-        private string GithubCodeReplacer(Match match)
-        {
-            var code = match.Groups[3].Value;
-            code = code.Replace("<", "&lt;").Replace(">", "&gt;");
-            return string.Format(@"<pre><code data-lang=""{0}"" class=""language-{0}"">", code);
         }
 
         private string OnCodeBlock(Markdown arg1, string arg2)

@@ -58,9 +58,27 @@ http://this.link
             var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
             sut.VirtualPathHandler = OnResolvePath;
             var actual = sut.ParseString("/", @"
+hello world
 
-www.onetrueerror.com
+this www.onetrueerror.com is a
 
+link
+");
+
+            actual.Body.Should().Contain(@"href=""http://www.onetrueerror.com""");
+        }
+
+        [Fact]
+        public void do_not_destroy_regular_anchor_links()
+        {
+            var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
+            sut.VirtualPathHandler = OnResolvePath;
+            var actual = sut.ParseString("/", @"
+hello world
+
+this <a href=""http://www.onetrueerror.com"">regular</a> is a
+
+link
 ");
 
             actual.Body.Should().Contain(@"href=""http://www.onetrueerror.com""");
@@ -93,5 +111,25 @@ www.onetrueerror.com
 
             actual.Body.Should().Contain(@"id=""Parsespecific""");
         }
+
+
+        [Fact]
+        public void parse_code_blocks()
+        {
+            var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
+            sut.VirtualPathHandler = OnResolvePath;
+            var actual = sut.ParseString("/", @"
+
+```csharp
+for (int i = 0; i < 10; ++i)
+{
+}
+```
+
+");
+
+            actual.Body.Should().Contain(@"code data-lang=""csharp"" class=""language-csharp""");
+        }
+
     }
 }
