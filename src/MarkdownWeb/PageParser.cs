@@ -56,12 +56,12 @@ namespace MarkdownWeb
 
             var source = new PageSource(_rootUri, _rootDirectory);
             var page = new ParsedPage();
-            document = PreParseGithubCodeBlocks2(document);
             document = ConvertUncPaths(document);
+            document = PreParseGithubCodeBlocks2(document);
+            document = PreParseGithubTables(document);
             var pos = document.IndexOfAny(new[] { '\r', '\n' });
             page.Title = pos != -1 ? document.Substring(0, pos).TrimStart('#', ' ', '\t') : "";
             page.Body = markdown.Transform(document);
-            page.Body = PreParseGithubTables(page.Body);
             page.Body = AnchorHeadings(page.Body);
             page.Body = ConvertUrlsToLinks(page.Body);
             return page;
@@ -102,9 +102,9 @@ namespace MarkdownWeb
 
         private string ConvertUncPaths(string msg)
         {
-            var regex = @"(\\\\[A-Z_a-z\\]+)\s";
+            var regex = @"(\\\\[A-Z_a-z0-9$\\.\-]+)[\s|\n]";
             Regex r = new Regex(regex, RegexOptions.IgnoreCase);
-            return r.Replace(msg, "<a href=\"file://$1\">\\$1</a>");
+            return r.Replace(msg, "<a href=\"file://$1\" target=\"_blank\">\\$1</a>");
         }
 
         private string OnCodeBlock(Markdown arg1, string arg2)
@@ -125,13 +125,13 @@ namespace MarkdownWeb
                 return true;
             }
 
-            if (!src.StartsWith("/"))
+            if (!src.StartsWith("/") && !src.StartsWith("#"))
             {
                 src = _pageSource.GetAbsoluteUrl(_currentUrlPath, src);
                 arg.attributes["href"] = VirtualPathHandler("~/" + _rootUri + "/" + src);
             }
 
-            var exists = _pageSource.PageExists(src);
+            var exists = _pageSource.PageExists(src) || src.StartsWith("#");
             if (!exists)
                 arg.attributes["style"] = "color: red";
 
@@ -223,7 +223,7 @@ namespace MarkdownWeb
                 //got a table.
                 sb.AppendLine(@"<table class=""table table-striped table-bordered""><thead><tr><th>");
                 sb.AppendLine(firstLine.Replace(" | ", "</th><th>"));
-                sb.AppendLine("</tr></thead><tbody>");
+                sb.AppendLine("</th></tr></thead><tbody>");
                 while (true)
                 {
                     line = reader.ReadLine();
@@ -233,10 +233,30 @@ namespace MarkdownWeb
                         sb.AppendLine("<br>\r\n");
                         break;
                     }
+                    line = line.Trim('|');
+                    sb.Append("<tr>");
 
-                    sb.Append("<tr><td>");
-                    sb.Append(line.Replace(" | ", "</td><td>"));
-                    sb.AppendLine("</td></tr>");
+                    var oldPos = 0;
+                    while (true)
+                    {
+                        var pos = line.IndexOf('|', oldPos);
+                        if (pos == -1)
+                        {
+                            pos = line.Length;
+                        }
+
+                        var cell = line.Substring(oldPos, pos - oldPos);
+                        sb.Append("<td> ");
+                        var data = ParseString(_currentUrlPath, cell).Body.Replace("<p>","").Replace("</p>", "");
+                        sb.Append(data);
+                        sb.Append(" </td>");
+                        oldPos = pos + 1;
+                        if (oldPos >= line.Length)
+                        {
+                            sb.AppendLine("</tr>");
+                            break;
+                        }
+                    }
                 }
             }
 

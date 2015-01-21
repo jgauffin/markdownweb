@@ -99,6 +99,54 @@ link
         }
 
         [Fact]
+        public void markdown_parsing_does_not_destroy_tables()
+        {
+            var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
+            sut.VirtualPathHandler = OnResolvePath;
+            var actual = sut.ParseString("/", @"
+
+this | is  a | table header
+----- | ----- | ----------
+*italic* | description | comment
+**bold** | description | comment
+***italic bold*** | description | comment
+http://autolink.com | yeay | wow
+
+");
+
+            actual.Body.Should().Contain(@"</table>");
+        }
+
+        [Fact]
+        public void markdown_parsing_does_not_destroy_more_complex_tables()
+        {
+            var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
+            sut.VirtualPathHandler = OnResolvePath;
+            var actual = sut.ParseString("/", @"
+
+System         | Alias            | Nod 1            | Nod 2 
+---------------|-------------------|-----------------|-------
+**Winservice**  |  \\blgn165282  |            |         
+**Mellanlager** | [AnnoTest](http://AnnoTest)    | \\blgn201086    | \\blgn201087 
+**AnnoCache**   |                  | \\blgn201158    | \\blgn201159
+**Databas**	    |  blgn165277     |                   |     
+
+System         | Alias            | Nod 1            | Nod 2 
+---------------|-------------------|-----------------|-------
+**Winservice**  |  \\blgn165282  |            |         
+**Mellanlager** | [AnnoTest](http://AnnoTest)    | \\blgn201086    | \\blgn201087 
+**AnnoCache**   |                  | \\blgn201158    | \\blgn201159
+**Databas**	    |  blgn165277     |                   |     
+
+
+
+");
+
+            actual.Body.Should().Contain(@"</table>");
+        }
+
+
+        [Fact]
         public void headings_should_be_anchored()
         {
             var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
