@@ -38,6 +38,9 @@ The result code is like below; it is missing a th closing tag and merge the rest
             var actual = parser.ParseString("", markdown);
 
             actual.Body.Should().Contain("<h3 id=\"N3IvFragmentSecondaireMVC5\">N3 IvFragment Secondaire MVC5</h3>");
+            var posTable = actual.Body.IndexOf("</table>");
+            var h3 = actual.Body.IndexOf("<h3 id=\"N3IvFragmentSecondaireMVC5");
+            posTable.Should().BeLessThan(h3);
         }
     }
 }
