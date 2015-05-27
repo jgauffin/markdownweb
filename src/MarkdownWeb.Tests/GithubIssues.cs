@@ -42,5 +42,81 @@ The result code is like below; it is missing a th closing tag and merge the rest
             var h3 = actual.Body.IndexOf("<h3 id=\"N3IvFragmentSecondaireMVC5");
             posTable.Should().BeLessThan(h3);
         }
+
+
+        [Fact]
+        public void Work_with_The_onetrueerror_page()
+        {
+            #region markdown
+            var markdown = @"Reporting
+============
+
+There are two ways of reporting exceptions with OneTrueError. 
+
+# One-line reporting
+
+To report errors you simply invoke our library in the catch clause:
+
+```csharp
+try
+{
+    // some logic
+}
+catch (Exception ex)
+{
+    OneTrue.Report(ex);
+}
+```
+
+The error will now be stored on disk and reported as soon as possible. The disk storage allows us
+to be able to upload reports if there is connectivity issues or if you recycle the IIS application pool.
+
+# Providing context information
+
+In MVC5 you typically work with view models. These models can be invaluable when trying to figure out why an exception was thrown. With our library you can easily include the view model.
+
+```csharp
+public ActionResult Save(AccountViewModel model)
+{
+    try
+    {
+        // some logic
+    }
+    catch (Exception ex)
+    {
+        OneTrue.Report(ex, model);
+    }
+}
+```
+
+# Providing additional information
+
+We support anonymous objects, so if you need to provide additional information you simply create a new
+anonymous object:
+
+ ```csharp
+public ActionResult Save(AccountViewModel model)
+{
+    try
+    {
+        // some logic
+        var partialResult = _service.ProcessSomething();
+        // more business logic
+    }
+    catch (Exception ex)
+    {
+        OneTrue.Report(ex, new { 
+            ViewModel = model,
+            PartialResult = partialResult
+        });
+    }
+}
+```";
+            #endregion
+
+            var parser = new PageParser(AppDomain.CurrentDomain.BaseDirectory, "");
+            var actual = parser.ParseString("", markdown);
+
+        }
     }
 }
