@@ -171,10 +171,9 @@ namespace MarkdownWeb
                 sb.AppendLine();
                 pos += 5;
                 var nlPos = text.IndexOfAny(new[] { '\r', '\n' }, pos);
-                if (nlPos == -1)
-                    break;
-
                 var codeLang = text.Substring(pos, nlPos - pos);
+
+
                 lastPos = text.IndexOf("\r\n```\r\n", pos + 1);
                 if (lastPos == -1)
                     lastPos = text.Length - 1;

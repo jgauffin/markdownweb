@@ -30,9 +30,21 @@ namespace AspNetExample.Controllers
                 return File(Path.Combine(folderPath, src.Replace("/", "\\")), mime);
             }
 
+            if (Request.QueryString["editor"] != null)
+            {
+                var pageSource = new PageSource(baseUrl, folderPath);
+                ViewBag.Text = pageSource.GetContent(baseUrl + path);
+                return View("Editor");
+            }
+
             var parser = new PageParser(folderPath, baseUrl);
             var result = parser.ParseUrl(baseUrl + path);
             return View("Index", result);
+        }
+
+        public ActionResult Editor()
+        {
+            return View();
         }
     }
 }

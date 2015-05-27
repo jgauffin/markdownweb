@@ -46,6 +46,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EncodingDetector.cs" />
+    <Compile Include="PostFilters\PostFilterCollection.cs" />
+    <Compile Include="PostFilters\AnchorHeadings.cs" />
+    <Compile Include="PostFilters\ConvertUrlsToLinks.cs" />
+    <Compile Include="PostFilters\IPostFilter.cs" />
+    <Compile Include="PostFilters\PostFilterContext.cs" />
+    <Compile Include="IMarkdownParser.cs" />
+    <Compile Include="PreFilters\IPreFilter.cs" />
+    <Compile Include="PreFilters\GithubCodeBlocks.cs" />
+    <Compile Include="PreFilters\GithubTables.cs" />
+    <Compile Include="PreFilters\PreFilterCollection.cs" />
+    <Compile Include="PreFilters\PreFilterContext.cs" />
+    <Compile Include="PreFilters\UncPathsToLinks.cs" />
     <Compile Include="IPageSource.cs" />
     <Compile Include="PageParser.cs" />
     <Compile Include="PageSource.cs" />
@@ -55,6 +67,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
