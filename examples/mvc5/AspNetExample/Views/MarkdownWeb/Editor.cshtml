@@ -31,31 +31,33 @@
     }
 </style>
 
-<div id="editor">
-    <div class="toolbar">
-        <span class="button-h1" accesskey="1" title="Heading 1"><img src="@Url.Content("~/Content/images/h1.png")" /></span>
-        <span class="button-h2" accesskey="2" title="Heading 2"><img src="@Url.Content("~/Content/images/h2.png")" /></span>
-        <span class="button-h3" accesskey="3" title="Heading 3"><img src="@Url.Content("~/Content/images/h3.png")" /></span>
-        <span class="button-bold" accesskey="b" title="Bold text"><img src="@Url.Content("~/Content/images/bold.png")" /></span>
-        <span class="button-italic" accesskey="i" title="Italic text"><img src="@Url.Content("~/Content/images/italic.png")" /></span>
-        <span class="divider">&nbsp;</span>
-        <span class="button-bullets" accesskey="l" title="Bullet List"><img src="@Url.Content("~/Content/images/bullets.png")" /></span>
-        <span class="button-numbers" accesskey="n" title="Ordered list"><img src="@Url.Content("~/Content/images/numbers.png")" /></span>
-        <span class="divider">&nbsp;</span>
-        <span class="button-sourcecode" accesskey="k" title="Source code"><img src="@Url.Content("~/Content/images/source_code.png")" /></span>
-        <span class="button-quote" accesskey="q" title="Qoutation"><img src="@Url.Content("~/Content/images/document_quote.png")" /></span>
-        <span class="divider">&nbsp;</span>
-        <span class="button-link" accesskey="l" title="Insert link"><img src="@Url.Content("~/Content/images/link.png")" /></span>
-        <span class="button-image" accesskey="p" title="Insert picture/image"><img src="@Url.Content("~/Content/images/picture.png")" /></span>
+<form method="POST" action="@Request.Url.ToString()">
+    <div id="editor">
+        <div class="toolbar">
+            <span class="button-h1" accesskey="1" title="Heading 1"><img src="@Url.Content("~/Content/images/h1.png")" /></span>
+            <span class="button-h2" accesskey="2" title="Heading 2"><img src="@Url.Content("~/Content/images/h2.png")" /></span>
+            <span class="button-h3" accesskey="3" title="Heading 3"><img src="@Url.Content("~/Content/images/h3.png")" /></span>
+            <span class="button-bold" accesskey="b" title="Bold text"><img src="@Url.Content("~/Content/images/bold.png")" /></span>
+            <span class="button-italic" accesskey="i" title="Italic text"><img src="@Url.Content("~/Content/images/italic.png")" /></span>
+            <span class="divider">&nbsp;</span>
+            <span class="button-bullets" accesskey="l" title="Bullet List"><img src="@Url.Content("~/Content/images/bullets.png")" /></span>
+            <span class="button-numbers" accesskey="n" title="Ordered list"><img src="@Url.Content("~/Content/images/numbers.png")" /></span>
+            <span class="divider">&nbsp;</span>
+            <span class="button-sourcecode" accesskey="k" title="Source code"><img src="@Url.Content("~/Content/images/source_code.png")" /></span>
+            <span class="button-quote" accesskey="q" title="Qoutation"><img src="@Url.Content("~/Content/images/document_quote.png")" /></span>
+            <span class="divider">&nbsp;</span>
+            <span class="button-link" accesskey="l" title="Insert link"><img src="@Url.Content("~/Content/images/link.png")" /></span>
+            <span class="button-image" accesskey="p" title="Insert picture/image"><img src="@Url.Content("~/Content/images/picture.png")" /></span>
+        </div>
+        <textarea class="area" name="Body">@Html.Raw(ViewBag.Text)</textarea><br />
+        <button class="btn btn-success">SAVE</button>
+
+
     </div>
-    <textarea class="area">@Html.Raw(ViewBag.Text)</textarea><br />
-    <button class="btn btn-success">SAVE</button>
-
-
-</div>
-<div id="editor-preview">
-    PREVIEW!
-</div>
+    <div id="editor-preview">
+        PREVIEW!
+    </div>
+</form>
 <div class="clearfix"></div>
 
 <div class="modal fade" id="editor-imageDialog">

@@ -2,9 +2,9 @@ namespace MarkdownWeb.PreFilters
 {
     public class PreFilterContext
     {
-        private readonly PageParser _pageParser;
+        private readonly IMarkdownParser _pageParser;
 
-        public PreFilterContext(PageParser pageParser)
+        public PreFilterContext(IMarkdownParser pageParser)
         {
             _pageParser = pageParser;
         }
@@ -14,18 +14,13 @@ namespace MarkdownWeb.PreFilters
         /// <summary>
         ///     Path to the current markdown document
         /// </summary>
-        public string CurrentUrlPath { get; set; }
-
-        /// <summary>
-        ///     Path to the root document for the markdown web
-        /// </summary>
-        public string RootUrlPath { get; set; }
+        public string CurrentPagePath { get; set; }
 
         public IMarkdownParser Parser { get; set; }
 
         public string Parse(string text)
         {
-            return _pageParser.ParseString(CurrentUrlPath, text).Body;
+            return _pageParser.Parse(CurrentPagePath, text);
         }
     }
 }

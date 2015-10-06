@@ -1,7 +1,12 @@
-﻿/// <reference path="typings/jquery/jquery.d.ts"/>
+﻿interface JQuery {
+    modal(options?:any);
+}
 
 module Griffin {
 
+    /**
+     * Context information for @see IToolbarHandler
+     */
     export interface IToolbarContext {
         editorElement: HTMLTextAreaElement;
         editor: Editor;
@@ -9,21 +14,69 @@ module Griffin {
         selection: TextSelector;
     }
 
+    /**
+     * Invokes the action once a toolbar button is pressed
+     */
     export interface IToolbarHandler {
+        /**
+         * Trigger preview of the generated result
+         * @param editor Editor that the toolbar belongs to
+         * @param target Element that the generated result should be visible in
+         * @param textToParse Text to convert.
+         */
         preview(editor: Editor, target: HTMLElement, textToParse: string): void;
+
+        /**
+         * Invoke a toolbar button
+         * @param context Context information
+         */
         invokeAction(context: IToolbarContext);
     }
+
+    /**
+     * Used to be able to syntax highlight code.
+     */
     export interface ISyntaxHighlighter {
+        /**
+         * Highlight code (transform each passed node).
+         * Each array contains the element that 
+         * @param blockElements Code sections (typically fenced code blocks). 
+         * @param inlineElements Small code blocks (typically a variable name or similar) embedded in text.
+         */
         highlight(blockElements: HTMLElement[], inlineElements: HTMLElement[]): void;
     }
 
+    /**
+     * Result from a image dialog
+     * @see IDialogProvider
+     */
     export interface IImageInfo {
         href: string;
         title: string;
     }
+
+    /**
+     * Used to process markdown and similar.
+     */
     export interface ITextParser {
+        /**
+         * Parse text
+         * @param text Text as the user wrote it.
+         * @returns HTML 
+         */
         parse(text: string): string;
     }
+
+    /**
+     * A text selection in our text box
+     * @see TextSelector
+     */
+    export interface ITextSelection {
+        start: number;
+        end: number;
+        length: number;
+    }
+
 
     /**
      * Returns link information from IDialogProvider
@@ -40,16 +93,50 @@ module Griffin {
          */
         text: string;
     }
+
+    /**
+     * Used when a dialog is requested.
+     */
     export interface IDialogProviderContext {
+
+        /**
+         * Selection if any
+         */
         selection: TextSelector;
+
+        /**
+         * Editor that want to open a dialog
+         */
         editor: Editor;
+
+        /**
+         * Element that the editor is wrapping
+         */
         editorElement: HTMLTextAreaElement;
     }
+
+    /**
+     * Used to be able to use ones favorite javascript library to open dialogs
+     */
     export interface IDialogProvider {
+        /**
+         * User want to embed an image in the editor
+         * @param context Information that can be used to pre select an image
+         * @param callback Invoke it with the image details once done.
+         */
         image(context: IDialogProviderContext, callback: (result: IImageInfo) => void);
+
+        /**
+         * User want to insert a link in the editor.
+         * @param context Information that can be used to pre select an image
+         * @param callback Invoke it with the image details once done.
+         */
         link(context: IDialogProviderContext, callback: (result: ILinkInfo) => void);
     }
 
+    /**
+     * The main mother of all editors.
+     */
     export class Editor {
         public dialogProvider: IDialogProvider;
         public syntaxHighlighter: ISyntaxHighlighter;
@@ -63,8 +150,16 @@ module Griffin {
         private keyMap = {};
         private editorTimer: any;
 
+        /**
+         * Let the text area grow instead of getting a vertical scroll bar.
+         */
         public autoSize: boolean;
 
+        /**
+         * Create a new editor
+         * @param elementOrId either an HTML id (without hash) or a HTMLTextAreaElement.
+         * @param parser Used to transform markdown to HTML (or another language).
+         */
         constructor(elementOrId: any, parser: ITextParser) {
             if (typeof elementOrId === 'string') {
                 this.containerElement = document.getElementById(elementOrId);
@@ -74,13 +169,21 @@ module Griffin {
 
             this.id = this.containerElement.id;
             var id = this.containerElement.id;
-            this.element = <HTMLTextAreaElement>(this.containerElement.getElementsByTagName("textarea")[0]);
+            this.element = (this.containerElement.getElementsByTagName("textarea")[0]);
             this.previewElement = document.getElementById(id + '-preview');
             this.toolbarElement = <HTMLElement>this.containerElement.getElementsByClassName('toolbar')[0];
             this.textSelector = new TextSelector(this.element);
             this.toolbarHandler = new MarkdownToolbar(parser);
             this.assignAccessKeys();
-            this.dialogProvider = new BoostrapDialogs();
+
+            if (typeof $().modal == 'function') {
+                this.dialogProvider = new BoostrapDialogs();
+            } else {
+                this.dialogProvider = new ConfirmDialogs();
+                document.getElementById(id + '-imageDialog').style.display = "none";
+                document.getElementById(id + '-linkDialog').style.display = "none";
+            }
+            
             this.bindEvents();
         }
 
@@ -127,13 +230,13 @@ module Griffin {
                 return;
             }
 
-            var twin = $(this).data('twin-area');
-            if (typeof twin === 'undefined') {
-                twin = $('<textarea style="position:absolute; top: -10000px"></textarea>');
-                twin.appendTo('body');
+            var twin = $(this).data("twin-area");
+            if (typeof twin === "undefined") {
+                twin = $("<textarea style=\"position:absolute; top: -10000px\"></textarea>");
+                twin.appendTo("body");
                 //div.appendTo('body');
-                $(this).data('twin-area', twin);
-                $(this).data('originalSize', {
+                $(this).data("twin-area", twin);
+                $(this).data("originalSize", {
                     width: this.element.clientWidth,
                     height: this.element.clientHeight,
                     //position: data.editor.css('position'), 
@@ -141,12 +244,13 @@ module Griffin {
                     left: this.getLeftPos(this.element)
                 });
             }
-            twin.css('height', this.element.clientHeight);
-            twin.css('width', this.element.clientWidth);
-            twin.html(this.element.getAttribute('value') + 'some\r\nmore\r\n');
+            // ReSharper disable once QualifiedExpressionMaybeNull
+            twin.css("height", this.element.clientHeight);
+            twin.css("width", this.element.clientWidth);
+            twin.html(this.element.getAttribute("value") + "some\r\nmore\r\n");
             if (twin[0].clientHeight < twin[0].scrollHeight) {
                 var style = {
-                    height: (this.element.clientHeight + 100) + 'px',
+                    height: (this.element.clientHeight + 100) + "px",
                     width: this.element.clientWidth,
                     //position: 'absolute', 
                     top: this.getTopPos(this.element),
@@ -154,7 +258,7 @@ module Griffin {
                     //zindex: 99
                 };
                 $(this.element).css(style);
-                $(this).data('expandedSize', style);
+                $(this).data("expandedSize", style);
             }
         }
 
@@ -168,18 +272,18 @@ module Griffin {
 
         private bindEditorEvents(): void {
             var self = this;
-            this.element.addEventListener('focus', (e: FocusEvent) => {
+            this.element.addEventListener("focus", () => {
                 //grow editor
             });
-            this.element.addEventListener('blur', (e: FocusEvent) => {
+            this.element.addEventListener("blur", () => {
                 //shrink editor
             });
-            this.element.addEventListener('keyup', (e: KeyboardEvent) => {
+            this.element.addEventListener("keyup", () => {
                 self.preview();
                 //self.invokeAutoSize();
             });
-            this.element.addEventListener('paste', (e: any) => {
-                setTimeout(function () {
+            this.element.addEventListener("paste", () => {
+                setTimeout(() => {
                     self.preview();
                 }, 100);
             });
@@ -189,12 +293,12 @@ module Griffin {
             var len = spans.length;
             var self = this;
             for (var i = 0; i < len; i++) {
-                if (spans[i].className.indexOf('button') === -1)
+                if (spans[i].className.indexOf("button") === -1)
                     continue;
                 var button = spans[i];
-                button.addEventListener('click', (e: MouseEvent) => {
+                button.addEventListener("click", (e: MouseEvent) => {
                     var btn = <HTMLElement>e.target;
-                    if (btn.tagName != 'span') {
+                    if (btn.tagName !== "span") {
                         btn = (<HTMLElement>e.target).parentElement;
                     }
                     var actionName = self.getActionNameFromClass(btn.className);
@@ -209,14 +313,13 @@ module Griffin {
             var self = this;
 
             //required to override browser keys
-            document.addEventListener('keydown', (e: KeyboardEvent) => {
-                e = e || window.event;
+            document.addEventListener("keydown", (e: KeyboardEvent) => {
                 if (!e.ctrlKey)
                     return;
                 var key = String.fromCharCode(e.which);
-                if (!key || key == '')
+                if (!key || key.length === 0)
                     return;
-                if (e.target != self.element)
+                if (e.target !== self.element)
                     return;
 
                 var actionName = this.keyMap[key];
@@ -227,12 +330,11 @@ module Griffin {
                 }
             });
             this.element.addEventListener('keyup', (e: KeyboardEvent) => {
-                e = e || window.event;
                 if (!e.ctrlKey)
                     return;
 
                 var key = String.fromCharCode(e.which);
-                if (!key || key == '')
+                if (!key || key.length === 0)
                     return;
 
                 var actionName = this.keyMap[key];
@@ -243,8 +345,12 @@ module Griffin {
             });
         }
 
+        /**
+         * Invoke a toolbar action
+         * @param actionName "H1", "B" or similar
+         */
         public invokeAction(actionName) {
-            if (!actionName || actionName == '')
+            if (!actionName || actionName.length === 0)
                 throw new Error("ActionName cannot be empty");
 
             this.trimSpaceInSelection();
@@ -252,7 +358,7 @@ module Griffin {
                 editorElement: this.element,
                 editor: this,
                 actionName: actionName,
-                selection: this.textSelector,
+                selection: this.textSelector
             });
         }
 
@@ -264,7 +370,10 @@ module Griffin {
             return element.getBoundingClientRect().left + window.pageXOffset - element.ownerDocument.documentElement.clientLeft;
         }
 
-        private preview(): void {
+        /**
+         * Update the preview window
+         */
+        public preview(): void {
             if (this.previewElement == null) {
                 return;
             }
@@ -274,9 +383,18 @@ module Griffin {
                 clearTimeout(this.editorTimer);
             }
             if (this.syntaxHighlighter) {
-                this.editorTimer = setTimeout(function () {
-                    var inlineBlocks = $('code:not(pre code)', this.previewElement);
-                    var codeBlocks = $('pre > code', this.previewElement);
+                this.editorTimer = setTimeout(() => {
+                    var tags = this.previewElement.getElementsByTagName("code");
+                    var inlineBlocks = [];
+                    var codeBlocks = [];
+                    for (var i = 0; i < tags.length; i++) {
+                        var elem = <HTMLElement>tags[i];
+                        if (elem.parentElement.tagName === 'PRE') {
+                            codeBlocks.push(elem);
+                        } else {
+                            inlineBlocks.push(elem);
+                        }
+                    }
                     this.syntaxHighlighter.highlight(inlineBlocks, codeBlocks);
                 }, 1000);
             }
@@ -284,16 +402,38 @@ module Griffin {
 
     }
 
+    export class ConfirmDialogs implements IDialogProvider {
+        public image(context: IDialogProviderContext, callback: (result: IImageInfo) => void) {
+            var url = prompt("Enter image URL", context.selection.text());
+            setTimeout(() => {
+                callback({
+                    href: url,
+                    title: "Enter title here"
+                });
+            });
+        }
+
+        public link(context: IDialogProviderContext, callback: (result: ILinkInfo) => void) {
+            var url = prompt("Enter URL", context.selection.text());
+            setTimeout(() => {
+                callback({
+                    url: url,
+                    text: "Enter title here"
+                });
+            });
+        }
+    }
+
     export class BoostrapDialogs implements IDialogProvider {
         public image(context: IDialogProviderContext, callback: (result: IImageInfo) => void) {
             var dialog = $('#' + context.editor.id + "-imageDialog");
             if (!dialog.data('griffin-imageDialog-inited')) {
                 dialog.data('griffin-imageDialog-inited', true);
-                $('[data-success]', dialog).click(function () {
+                $('[data-success]', dialog).click(() => {
                     dialog.modal('hide');
                     callback({
                         href: $('[name="imageUrl"]', dialog).val(),
-                        title: $('[name="imageCaption"]', dialog).val(),
+                        title: $('[name="imageCaption"]', dialog).val()
                     });
                     context.editorElement.focus();
                 });
@@ -302,7 +442,7 @@ module Griffin {
             if (context.selection.isSelected()) {
                 $('[name="imageCaption"]', dialog).val(context.selection.text());
             }
-            dialog.on('shown.bs.modal', function () {
+            dialog.on('shown.bs.modal', () => {
                 $('[name="imageUrl"]', dialog).focus();
             });
 
@@ -315,18 +455,18 @@ module Griffin {
             var dialog = $('#' + context.editor.id + "-linkDialog");
             if (!dialog.data('griffin-linkDialog-inited')) {
                 dialog.data('griffin-linkDialog-inited', true);
-                $('[data-success]', dialog).click(function () {
+                $('[data-success]', dialog).click(() => {
                     dialog.modal('hide');
                     callback({
                         url: $('[name="linkUrl"]', dialog).val(),
-                        text: $('[name="linkText"]', dialog).val(),
+                        text: $('[name="linkText"]', dialog).val()
                     });
                     context.editorElement.focus();
                 });
-                dialog.on('shown.bs.modal', function () {
+                dialog.on('shown.bs.modal', () => {
                     $('[name="linkUrl"]', dialog).focus();
                 });
-                dialog.on('hidden.bs.modal', function () {
+                dialog.on('hidden.bs.modal', () => {
                     context.editorElement.focus();
                 });
             }
@@ -369,10 +509,7 @@ module Griffin {
 
         public preview(editor: Editor, preview: HTMLElement, contents: string) {
             if (contents === null || typeof contents === 'undefined') {
-                if (typeof alert !== 'undefined') {
-                    alert('Empty contents');
-                }
-                return this;
+                throw new Error('May not be called without actual content.');
             }
             preview.innerHTML = this.parser.parse(contents);
         }
@@ -450,7 +587,7 @@ module Griffin {
                 //if the text already exists.
                 while (xStart > 0) {
                     var ch = text.substr(xStart, 1);
-                    if (ch == '\r' || ch == '\n') {
+                    if (ch === '\r' || ch === '\n') {
                         if (text.substr(xStart + 1, textToAdd.length) === textToAdd) {
                             selection.select(xStart + 1, textToAdd.length);
                             selection.replace('');
@@ -477,11 +614,9 @@ module Griffin {
             }
 
             var pos = selection.get();
-            selection.replace(textToAdd + selection.text());
-
-            if (isSelected) {
-                selection.select(pos.end + textToAdd.length, pos.end + textToAdd.length);
-            }
+            var newText = textToAdd + selection.text();
+            selection.replace(newText);
+            selection.select(pos.end + textToAdd.length, pos.end + textToAdd.length);
         }
 
         private actionH1(selection: TextSelector) {
@@ -536,7 +671,7 @@ module Griffin {
             if (!selection.isSelected()) {
                 selection.replace('> ');
                 selection.select(pos.start + 2, pos.start + 2);
-                return this;
+                return;
             }
 
 
@@ -557,7 +692,9 @@ module Griffin {
             var options = {
                 editor: context.editor,
                 editorElement: context.editorElement,
-                selection: selection
+                selection: selection,
+                href: '',
+                title: ''
             };
 
             if (!selection.isSelected()) {
@@ -585,7 +722,9 @@ module Griffin {
             var options = {
                 editor: context.editor,
                 editorElement: context.editorElement,
-                selection: selection
+                selection: selection,
+                url: '',
+                text: ''
             };
 
             if (selection.isSelected()) {
@@ -605,12 +744,7 @@ module Griffin {
         }
     }
 
-    export interface ITextSelection {
-        start: number;
-        end: number;
-        length: number
-    }
-
+   
 
     export class TextSelector {
         public element: HTMLTextAreaElement;
@@ -623,6 +757,7 @@ module Griffin {
                 this.element = elementOrId;
             }
         }
+
 
         /** @returns object {start: X, end: Y, length: Z} 
           * x = start character
@@ -639,14 +774,15 @@ module Griffin {
                 };
             }
 
-            var range = document.selection.createRange();
-            var storedRange = range.duplicate();
-            storedRange.moveToElementText(this.element);
-            storedRange.setEndPoint('EndToEnd', range);
-            var start = storedRange.text.length - range.text.length;
-            var end = start + range.text.length;
+            var range = document.getSelection().getRangeAt(0);
+            var storedRange = range.cloneRange();
+            storedRange.selectNode(this.element);
+            storedRange.endOffset = this.element.textContent.length;
+            //storedRange.setEndPoint('EndToEnd', range);
+            var start = storedRange.toString().length - range.toString().length;
+            var end = start + range.toString().length;
 
-            return { start: start, end: end, length: range.text.length };
+            return { start: start, end: end, length: range.toString().length };
         }
 
         /** Replace selected text with the specified one */
@@ -659,7 +795,37 @@ module Griffin {
             }
 
             this.element.focus();
-            document.selection.createRange().text = newText;
+            // Get the first Range (only Firefox supports more than one)
+            var range = window.getSelection().getRangeAt(0);
+            range.deleteContents();
+
+            var fragment;
+            // Create a DocumentFragment to insert and populate it with HTML
+            // Need to test for the existence of range.createContextualFragment
+            // because it's non-standard and IE 9 does not support it
+            if (range.createContextualFragment) {
+                fragment = range.createContextualFragment(newText);
+            } else {
+                // In IE 9 we need to use innerHTML of a temporary element
+                var div = document.createElement("div"), child;
+                div.innerHTML = newText;
+                fragment = document.createDocumentFragment();
+                while ((child = div.firstChild)) {
+                    fragment.appendChild(child);
+                }
+            }
+            var firstInsertedNode = fragment.firstChild;
+            var lastInsertedNode = fragment.lastChild;
+            range.insertNode(fragment);
+            var selectInserted = false;
+            if (selectInserted) {
+                if (firstInsertedNode) {
+                    range.setStartBefore(firstInsertedNode);
+                    range.setEndAfter(lastInsertedNode);
+                }
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+            }
             return this;
         }
 
@@ -669,7 +835,7 @@ module Griffin {
         }
 
         /** load last selection */
-        public load() {
+        load() {
             this.select(this.stored);
         }
 
@@ -677,7 +843,7 @@ module Griffin {
          * @param start Start character
          * @param end End character
          */
-        public select(startOrSelection: any, end?: number) {
+        select(startOrSelection: any, end?: number):TextSelector {
             var start = startOrSelection;
 
             if (typeof startOrSelection.start !== 'undefined') {
@@ -704,16 +870,16 @@ module Griffin {
         }
 
         /** @returns if anything is selected */
-        public isSelected() {
+        isSelected():boolean {
             return this.get().length !== 0;
         }
 
         /** @returns selected text */
-        public text() {
-            if (typeof document.selection !== 'undefined') {
+        text():string {
+            if (typeof document['selection'] !== 'undefined') {
                 //elem.focus();
                 //console.log(document.selection.createRange().text);
-                return document.selection.createRange().text;
+                return document['selection'].createRange().text;
             }
 
             return this.element.value.substr(this.element.selectionStart, this.element.selectionEnd - this.element.selectionStart);

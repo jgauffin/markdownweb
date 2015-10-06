@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace MarkdownWeb
+namespace MarkdownWeb.Storage.Files
 {
     public class FileHelper
     {

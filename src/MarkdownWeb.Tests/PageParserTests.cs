@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FluentAssertions;
+using MarkdownWeb.Storage.Files;
 using Xunit;
 
 namespace MarkdownWeb.Tests
@@ -13,13 +10,13 @@ namespace MarkdownWeb.Tests
         [Fact]
         public void parses_image_link_correctly()
         {
+            var pathConverter = new UrlConverter("/intranet/");
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseUrl("/intranet/withlink");
 
-            var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
-            sut.VirtualPathHandler = OnResolvePath;
-            var actual = sut.ParseUrl("/withlink");
-
-            actual.Body.Should().Contain("/intranet?image=NoDoc/image.png");
+            actual.Body.Should().Contain("/intranet/?image=/NoDoc/image.png");
         }
 
         private string OnResolvePath(string arg)
@@ -30,20 +27,24 @@ namespace MarkdownWeb.Tests
         [Fact]
         public void parses_page_link_correctly()
         {
+            var pathConverter = new UrlConverter("/intranet/");
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseUrl("/intranet/withlink");
 
-            var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
-            sut.VirtualPathHandler = OnResolvePath;
-            var actual = sut.ParseUrl("/withlink");
-
-            actual.Body.Should().Contain("intranet/FolderTest");
+            actual.Body.Should()
+                .Contain("/intranet/FolderTest", "because links are clickable and not wiki relative in the HTML pages.");
         }
 
         [Fact]
         public void finds_http_link_correctly()
         {
-            var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
-            var actual = sut.ParseString("/", @"
+            var pathConverter = new UrlConverter("/intranet/");
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseString("/intranet/", @"
 
 http://this.link
 
@@ -55,9 +56,11 @@ http://this.link
         [Fact]
         public void finds_www_link_correctly()
         {
-            var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
-            sut.VirtualPathHandler = OnResolvePath;
-            var actual = sut.ParseString("/", @"
+            var pathConverter = new UrlConverter("/intranet/");
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseString("/intranet/", @"
 hello world
 
 this www.onetrueerror.com is a
@@ -71,9 +74,11 @@ link
         [Fact]
         public void do_not_destroy_regular_anchor_links()
         {
-            var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
-            sut.VirtualPathHandler = OnResolvePath;
-            var actual = sut.ParseString("/", @"
+            var pathConverter = new UrlConverter("/intranet/");
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseString("/intranet/", @"
 hello world
 
 this <a href=""http://www.onetrueerror.com"">regular</a> is a
@@ -87,9 +92,11 @@ link
         [Fact]
         public void finds_unc_path_correctly()
         {
-            var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
-            sut.VirtualPathHandler = OnResolvePath;
-            var actual = sut.ParseString("/", @"
+            var pathConverter = new UrlConverter("/intranet/");
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseString("/intranet/", @"
 
 \\unc_path\to\folder
 
@@ -101,9 +108,11 @@ link
         [Fact]
         public void markdown_parsing_does_not_destroy_tables()
         {
-            var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
-            sut.VirtualPathHandler = OnResolvePath;
-            var actual = sut.ParseString("/", @"
+            var pathConverter = new UrlConverter("/intranet/");
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseString("/intranet/", @"
 
 this | is  a | table header
 ----- | ----- | ----------
@@ -120,9 +129,11 @@ http://autolink.com | yeay | wow
         [Fact]
         public void markdown_parsing_does_not_destroy_more_complex_tables()
         {
-            var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
-            sut.VirtualPathHandler = OnResolvePath;
-            var actual = sut.ParseString("/", @"
+            var pathConverter = new UrlConverter("/intranet/");
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseString("/intranet/", @"
 
 System         | Alias            | Nod 1            | Nod 2 
 ---------------|-------------------|-----------------|-------
@@ -149,9 +160,11 @@ System         | Alias            | Nod 1            | Nod 2
         [Fact]
         public void headings_should_be_anchored()
         {
-            var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
-            sut.VirtualPathHandler = OnResolvePath;
-            var actual = sut.ParseString("/", @"
+            var pathConverter = new UrlConverter("/intranet/");
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseString("/intranet/", @"
 
 <h1>Parse specific</h1>
 
@@ -164,9 +177,11 @@ System         | Alias            | Nod 1            | Nod 2
         [Fact]
         public void parse_code_blocks()
         {
-            var sut = new PageParser(Environment.CurrentDirectory + "\\TestDocs\\", "/intranet/");
-            sut.VirtualPathHandler = OnResolvePath;
-            var actual = sut.ParseString("/", @"
+            var pathConverter = new UrlConverter("/intranet/");
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseString("/intranet/", @"
 
 ```csharp
 for (int i = 0; i < 10; ++i)
@@ -178,6 +193,5 @@ for (int i = 0; i < 10; ++i)
 
             actual.Body.Should().Contain(@"code data-lang=""csharp"" class=""language-csharp""");
         }
-
     }
 }

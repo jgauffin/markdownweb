@@ -28,16 +28,15 @@ namespace MarkdownWeb.PostFilters
             _filters.Clear();
         }
 
-        public string Execute(string html)
+        public void Execute(PostFilterContext context)
         {
+            if (context == null) throw new ArgumentNullException("context");
+
             foreach (var filter in _filters)
             {
-                var context = new PostFilterContext();
-                context.HtmlToParse = html;
-                html = filter.Parse(context);
+                context.HtmlToParse = filter.Parse(context);
             }
 
-            return html;
         }
 
         public bool Remove(Type filterType)
@@ -47,14 +46,9 @@ namespace MarkdownWeb.PostFilters
 
         private void AddAllBuiltIn()
         {
-            foreach (
-                var type in
-                    Assembly.GetExecutingAssembly()
-                        .GetTypes()
-                        .Where(x => typeof (IPostFilter).IsAssignableFrom(x) && !x.IsAbstract && !x.IsInterface))
-            {
-                _filters.Add((IPostFilter) Activator.CreateInstance(type));
-            }
+            _filters.Add(new AnchorHeadings());
+            _filters.Add(new ConvertUrlsToLinks());
+            _filters.Add(new TableOfContents());
         }
     }
 }

@@ -53,9 +53,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FakeConverter.cs" />
     <Compile Include="GithubIssues.cs" />
     <Compile Include="PageParserTests.cs" />
-    <Compile Include="PageSourceTests.cs" />
+    <Compile Include="PostFilters\TocGeneratorTests.cs" />
+    <Compile Include="UrlConverterTests.cs" />
+    <Compile Include="PostFilters\ConvertUrlsToLinksTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

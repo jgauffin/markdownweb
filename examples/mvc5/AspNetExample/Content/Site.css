@@ -22,3 +22,30 @@ select,
 textarea {
     max-width: 280px;
 }
+
+
+.toc-container {
+    position: fixed;
+    top: 60px;
+    padding: 10px;
+    right: 10px;
+    background: white;
+    border: #333 2px solid;
+}
+
+    .toc-container ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+    .toc-container .heading1 {
+        margin-left: 10px;
+    }
+
+    .toc-container .heading2 {
+        margin-left: 20px;
+    }
+
+    .toc-container .heading3 {
+        margin-left: 30px;
+    }
