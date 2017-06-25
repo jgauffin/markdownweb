@@ -53,6 +53,7 @@
     <Compile Include="DependentFilter.cs" />
     <Compile Include="HtmlPart.cs" />
     <Compile Include="PostFilters\TableOfContents.cs" />
+    <Compile Include="PreFilters\SequenceDiagramsFilter.cs" />
     <Compile Include="Storage\EditedPage.cs" />
     <Compile Include="Storage\Files\FileBasedRepository.cs" />
     <Compile Include="Storage\IPageRepository.cs" />

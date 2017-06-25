@@ -113,13 +113,21 @@
 
 @section scripts
 {
-    <script src="@Url.Content("~/Scripts/GriffinEditor.js")"></script>
-    <script src="@Url.Content("~/Scripts/marked.min.js")"></script>
-
     <script type="text/javascript">
         $(function () {
-            marked.setOptions({
-                renderer: new marked.Renderer(),
+            var renderer = new marked.Renderer();
+            var oldRenderer = renderer.code;
+            renderer.code = function (code, language, escaped) {
+                if (language !== 'sequence') {
+                    return oldRenderer.apply(renderer, [code, language, escaped]);
+                }
+
+                var str = '<div class="sequence-diagram">'+code+'</div>\r\n';
+                return str;
+            };
+
+            var markedOptions = {
+                renderer: renderer,
                 gfm: true,
                 tables: true,
                 breaks: false,
@@ -127,15 +135,19 @@
                 sanitize: true,
                 smartLists: true,
                 smartypants: false
-            });
+            };
 
             var textParser = {
                 parse: function (text) {
-                    return marked(text);
+                    return marked(text, markedOptions);
                 }
             }
+
             var editor = new Griffin.Editor('editor', textParser);
+            editor.previewInvoked = function() {
+                $("#editor-preview .sequence-diagram").sequenceDiagram({ theme: 'hand' });
+            }
             editor.preview();
         });
-    </script>\
+    </script>
 }
