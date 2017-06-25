@@ -106,6 +106,9 @@ namespace MarkdownWeb.Storage.Files
             var path = wikiPath.Trim('/');
             path = Path.Combine(_rootFilePath, path);
 
+            if (wikiPath.Contains(".md"))
+                return path;
+
             if (File.Exists(path + "\\index.md"))
                 return path + "\\index.md";
 
