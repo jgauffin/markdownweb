@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
+using MarkdownWeb.Storage.Files;
 using Xunit;
 
 namespace MarkdownWeb.Tests
@@ -33,9 +34,11 @@ Quelques modifications seront exécutées dans le fichier de config pour install
 
 The result code is like below; it is missing a th closing tag and merge the rest of the document in the table.
 ";
+            var pathConverter = new UrlConverter("/");
+            var repository = new FileBasedRepository(Environment.CurrentDirectory);
 
-            var parser = new PageParser(AppDomain.CurrentDomain.BaseDirectory, "");
-            var actual = parser.ParseString("", markdown);
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseString("", markdown);
 
             actual.Body.Should().Contain("<h3 id=\"N3IvFragmentSecondaireMVC5\">N3 IvFragment Secondaire MVC5</h3>");
             var posTable = actual.Body.IndexOf("</table>");
@@ -47,6 +50,10 @@ The result code is like below; it is missing a th closing tag and merge the rest
         [Fact]
         public void Work_with_The_onetrueerror_page()
         {
+            var pathConverter = new UrlConverter("/");
+            var repository = new FileBasedRepository(Environment.CurrentDirectory);
+
+
             #region markdown
             var markdown = @"Reporting
 ============
@@ -114,7 +121,7 @@ public ActionResult Save(AccountViewModel model)
 ```";
             #endregion
 
-            var parser = new PageParser(AppDomain.CurrentDomain.BaseDirectory, "");
+            var parser = new PageService(repository, pathConverter);
             var actual = parser.ParseString("", markdown);
 
         }

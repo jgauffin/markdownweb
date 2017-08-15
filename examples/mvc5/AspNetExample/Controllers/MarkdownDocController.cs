@@ -3,6 +3,9 @@ using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using MarkdownWeb;
+using MarkdownWeb.PostFilters;
+using MarkdownWeb.Storage;
+using MarkdownWeb.Storage.Files;
 
 namespace AspNetExample.Controllers
 {
@@ -25,26 +28,60 @@ namespace AspNetExample.Controllers
 
             if (Request.QueryString["image"] != null)
             {
-                var src = Request.QueryString["image"];
-                var mime = MimeMapping.GetMimeMapping(Path.GetFileName(src));
-                return File(Path.Combine(folderPath, src.Replace("/", "\\")), mime);
+                return ServeImages(folderPath);
             }
 
-            if (Request.QueryString["editor"] != null)
+            var repository = new FileBasedRepository(folderPath);
+            var exists = repository.Exists(path);
+            if (Request.QueryString["editor"] != null || !exists)
             {
-                var pageSource = new PageSource(baseUrl, folderPath);
-                ViewBag.Text = pageSource.GetContent(baseUrl + path);
-                return View("Editor");
+                return HandlePageEdits(path, exists, repository, baseUrl);
             }
 
-            var parser = new PageParser(folderPath, baseUrl);
+            var urlConverter = new UrlConverter(baseUrl);
+            var parser = new PageService(repository, urlConverter);
             var result = parser.ParseUrl(baseUrl + path);
             return View("Index", result);
         }
 
-        public ActionResult Editor()
+        private ActionResult ServeImages(string folderPath)
         {
-            return View();
+            var src = Request.QueryString["image"];
+            var mime = MimeMapping.GetMimeMapping(Path.GetFileName(src));
+            return File(Path.Combine(folderPath, src.Replace("/", "\\")), mime);
+        }
+
+        private ActionResult HandlePageEdits(string path, bool exists, FileBasedRepository repository, string baseUrl)
+        {
+            if (Request.HttpMethod == "POST")
+            {
+                SubmitEditedPage(path, exists, repository);
+                return Redirect(Request.Url.AbsolutePath);
+            }
+            var page = repository.Get(path);
+            ViewBag.Text = page == null ? "" : page.Body;
+            return View("Editor");
+        }
+
+        private void SubmitEditedPage(string wikiPagePath, bool pageExists, IPageRepository repository)
+        {
+            var title = Request.Form["Title"];
+            if (string.IsNullOrEmpty(title))
+            {
+                var body = Request.Form["Body"];
+                var pos = body.IndexOfAny(new[] { '\r', '\n' });
+                title = pos == -1 ? "" : body.Substring(0, pos);
+            }
+            var crudPage = new EditedPage
+            {
+                Body = Request.Form["Body"],
+                Title = title,
+                Author = User.Identity.Name
+            };
+            if (pageExists)
+                repository.Update(wikiPagePath, crudPage);
+            else
+                repository.Create(wikiPagePath, crudPage);
         }
     }
 }

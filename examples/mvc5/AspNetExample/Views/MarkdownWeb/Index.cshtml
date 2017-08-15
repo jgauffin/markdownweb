@@ -1,4 +1,4 @@
-﻿@model MarkdownWeb.ParsedPage
+﻿@model MarkdownWeb.HtmlPage
 @{
     ViewBag.Title = Model.Title;
 }
@@ -6,3 +6,9 @@
 <div class="doc-pages">
     @Html.Raw(Model.Body)
 </div>
+<div class="toc-container">
+    <h1>TOC!</h1>
+    @Html.Raw(Model.GetPartOrDefault("TableOfContents").Body)
+</div>
+<hr />
+<a href="?editor=true">Edit page</a>
