@@ -4,6 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title - My ASP.NET Application</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css" rel="stylesheet">
+    <link href="/Content/MarkdownWeb.css" type="text/css" rel="stylesheet">
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
 
@@ -17,7 +20,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                @Html.ActionLink("Markdown demo", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
@@ -34,7 +37,7 @@
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; @DateTime.Now.Year - My ASP.NET Application</p>
+            <p>&copy; @DateTime.Now.Year - Markdown supperman</p>
         </footer>
     }
     else
@@ -43,7 +46,7 @@
             @RenderBody()
             <hr />
             <footer>
-                <p>&copy; @DateTime.Now.Year - My ASP.NET Application</p>
+                <p>&copy; @DateTime.Now.Year - Markdown supperman</p>
             </footer>
         </div>
     }
@@ -51,6 +54,16 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+    <script src="/scripts/dependencies/marked.min.js"></script>
+    <script src="/scripts/dependencies/Griffin.Editor.js"></script>
+
+    <script src="/scripts/dependencies/sequencediagrams/webfont.js"></script>
+    <script src="/scripts/dependencies/sequencediagrams/snap.svg-min.js"></script>
+    <script src="/scripts/dependencies/sequencediagrams/underscore-min.js"></script>
+    <script src="/scripts/dependencies/sequencediagrams/sequence-diagram-min.js"></script>
+
     @RenderSection("scripts", required: false)
 </body>
 </html>
