@@ -127,5 +127,19 @@ public ActionResult Save(AccountViewModel model)
             var actual = parser.ParseString("", markdown);
 
         }
+
+        [Fact]
+        public void autolinks_should_end_with_apostrophe()
+        {
+            var pathConverter = new UrlConverter("/");
+            var repository = new FileBasedRepository(Environment.CurrentDirectory);
+            var md =
+                @"Some page with a link IF(@message_type = 'http://schemas.microsoft.com/SQL/ServiceBroker/EndDialog') hello";
+
+            var parser = new PageService(repository, pathConverter);
+            var actual = parser.ParseString("", md);
+
+            actual.Body.Should().Contain("'</a>");
+        }
     }
 }

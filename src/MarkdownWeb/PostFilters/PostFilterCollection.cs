@@ -47,7 +47,6 @@ namespace MarkdownWeb.PostFilters
         private void AddAllBuiltIn()
         {
             _filters.Add(new AnchorHeadings());
-            _filters.Add(new ConvertUrlsToLinks());
             _filters.Add(new TableOfContents());
         }
     }

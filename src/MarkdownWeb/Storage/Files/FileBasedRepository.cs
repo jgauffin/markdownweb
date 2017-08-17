@@ -23,8 +23,7 @@ namespace MarkdownWeb.Storage.Files
         /// <param name="rootFilePath">Root folder where all markdown files are located.</param>
         public FileBasedRepository(string rootFilePath)
         {
-            if (rootFilePath == null) throw new ArgumentNullException("rootFilePath");
-            _rootFilePath = rootFilePath;
+            _rootFilePath = rootFilePath ?? throw new ArgumentNullException("rootFilePath");
             Encoding = Encoding.UTF8;
         }
 

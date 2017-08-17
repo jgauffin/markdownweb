@@ -6,3 +6,4 @@
 
 [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~M:MarkdownWeb.Tests.PreFilters.SequenceDiagramsFilterTests.should_Be_able_to_parse_a_block_that_ends_the_Document")]
 
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>", Scope = "member", Target = "~M:MarkdownWeb.Tests.GithubIssues.autolinks_should_end_with_apostrophe")]
