@@ -23,22 +23,22 @@ namespace MarkdownWeb.Storage.Files
             //////////////// BOM/signature exists (sourced from http://www.unicode.org/faq/utf_bom.html#bom4)
             if (b.Length >= 4 && b[0] == 0x00 && b[1] == 0x00 && b[2] == 0xFE && b[3] == 0xFF)
             {
-                encoding= Encoding.GetEncoding("utf-32BE");
+                encoding = Encoding.GetEncoding("utf-32BE");
                 return Encoding.GetEncoding("utf-32BE").GetString(b, 4, b.Length - 4);
             } // UTF-32, big-endian 
             if (b.Length >= 4 && b[0] == 0xFF && b[1] == 0xFE && b[2] == 0x00 && b[3] == 0x00)
             {
-                encoding= Encoding.UTF32;
+                encoding = Encoding.UTF32;
                 return Encoding.UTF32.GetString(b, 4, b.Length - 4);
             } // UTF-32, little-endian
             if (b.Length >= 2 && b[0] == 0xFE && b[1] == 0xFF)
             {
-                encoding= Encoding.BigEndianUnicode;
+                encoding = Encoding.BigEndianUnicode;
                 return Encoding.BigEndianUnicode.GetString(b, 2, b.Length - 2);
             } // UTF-16, big-endian
             if (b.Length >= 2 && b[0] == 0xFF && b[1] == 0xFE)
             {
-                encoding= Encoding.Unicode;
+                encoding = Encoding.Unicode;
                 return Encoding.Unicode.GetString(b, 2, b.Length - 2);
             } // UTF-16, little-endian
             if (b.Length >= 3 && b[0] == 0xEF && b[1] == 0xBB && b[2] == 0xBF)
@@ -77,7 +77,7 @@ namespace MarkdownWeb.Storage.Files
                     i += 1;
                     continue;
                 }
-                    // If all characters are below 0x80, then it is valid UTF8, but UTF8 is not 'required' (and therefore the text is more desirable to be treated as the default codepage of the computer). Hence, there's no "utf8 = true;" code unlike the next three checks.
+                // If all characters are below 0x80, then it is valid UTF8, but UTF8 is not 'required' (and therefore the text is more desirable to be treated as the default codepage of the computer). Hence, there's no "utf8 = true;" code unlike the next three checks.
                 if (b[i] >= 0xC2 && b[i] <= 0xDF && b[i + 1] >= 0x80 && b[i + 1] < 0xC0)
                 {
                     i += 2;
@@ -103,7 +103,7 @@ namespace MarkdownWeb.Storage.Files
             }
             if (utf8 == true)
             {
-                encoding= Encoding.UTF8;
+                encoding = Encoding.UTF8;
                 return Encoding.UTF8.GetString(b);
             }
 
@@ -114,16 +114,16 @@ namespace MarkdownWeb.Storage.Files
             var threshold = 0.1; // proportion of chars step 2 which must be zeroed to be diagnosed as utf-16. 0.1 = 10%
             var count = 0;
             for (var n = 0; n < taster; n += 2) if (b[n] == 0) count++;
-            if (((double) count)/taster > threshold)
+            if (((double)count) / taster > threshold)
             {
                 encoding = Encoding.BigEndianUnicode;
                 return Encoding.BigEndianUnicode.GetString(b);
             }
             count = 0;
             for (var n = 1; n < taster; n += 2) if (b[n] == 0) count++;
-            if (((double) count)/taster > threshold)
+            if (((double)count) / taster > threshold)
             {
-                encoding= Encoding.Unicode;
+                encoding = Encoding.Unicode;
                 return Encoding.Unicode.GetString(b);
             } // (little-endian)
 
@@ -158,7 +158,7 @@ namespace MarkdownWeb.Storage.Files
                     try
                     {
                         var internalEnc = Encoding.ASCII.GetString(nb);
-                        encoding= Encoding.GetEncoding(internalEnc);
+                        encoding = Encoding.GetEncoding(internalEnc);
                         return Encoding.GetEncoding(internalEnc).GetString(b);
                     }
                     catch
@@ -172,9 +172,10 @@ namespace MarkdownWeb.Storage.Files
             // If all else fails, the encoding is probably (though certainly not
             // definitely) the user's local codepage! One might present to the user a
             // list of alternative encodings as shown here: http://stackoverflow.com/questions/8509339/what-is-the-most-common-encoding-of-each-language
-            // A full list can be found using Encoding.GetEncodings();
-            encoding= Encoding.Default;
-            return Encoding.Default.GetString(b);
+            // 
+            // https://github.com/dotnet/standard/issues/260
+            encoding = Encoding.UTF8;
+            return encoding.GetString(b);
         }
     }
 }

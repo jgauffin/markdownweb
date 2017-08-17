@@ -50,14 +50,8 @@ namespace MarkdownWeb.PreFilters
 
         private void AddAllBuiltIn()
         {
-            foreach (
-                var type in
-                    Assembly.GetExecutingAssembly()
-                        .GetTypes()
-                        .Where(x => typeof(IPreFilter).IsAssignableFrom(x) && !x.IsAbstract && !x.IsInterface))
-            {
-                _filters.Add((IPreFilter)Activator.CreateInstance(type));
-            }
+            _filters.Add(new SequenceDiagramsFilter());
+            _filters.Add(new UncPathsToLinks());
         }
     }
 }
