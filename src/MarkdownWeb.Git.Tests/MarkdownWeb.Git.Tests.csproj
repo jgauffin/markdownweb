@@ -72,18 +72,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TryDownloadFromOneTrueError.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\MarkdownWeb.Git\MarkdownWeb.Git.csproj">
-      <Project>{4EF4156A-CC2F-43B9-A05E-704114017F8F}</Project>
+      <Project>{4ef4156a-cc2f-43b9-a05e-704114017f8f}</Project>
       <Name>MarkdownWeb.Git</Name>
     </ProjectReference>
     <ProjectReference Include="..\MarkdownWeb\MarkdownWeb.csproj">
-      <Project>{45655E19-BA1D-427B-8BED-E10DDE9F7431}</Project>
+      <Project>{45655e19-ba1d-427b-8bed-e10dde9f7431}</Project>
       <Name>MarkdownWeb</Name>
     </ProjectReference>
   </ItemGroup>

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
+using MarkdownWeb.PostFilters;
 using MarkdownWeb.Storage.Files;
 using Xunit;
 
@@ -16,7 +17,7 @@ namespace MarkdownWeb.Tests
         public void Issue1_dont_screw_up_the_page_when_using_tables()
         {
             var markdown = @"
-###Liste des paquets Nuget pour IvFragment Secondaire N3.
+### Liste des paquets Nuget pour IvFragment Secondaire N3.
 
 Nom | Version | Descriptions
 --- | ------- | ------------
@@ -24,7 +25,7 @@ N3_IVFragment_Secondaire_MVC5 | 1.2.1 | Utilitaires pour les fragments secondair
 
 
 
-###N3 IvFragment Secondaire MVC5
+### N3 IvFragment Secondaire MVC5
 
 >Ce paquet Nuget intégrera les fichiers utilitaires requis pour aider à convertir une section d'application .NET MVC en fragment secondaire.
 Quelques modifications seront exécutées dans le fichier de config pour installer le filtre N3 pour le fragment secondaire.
@@ -38,11 +39,12 @@ The result code is like below; it is missing a th closing tag and merge the rest
             var repository = new FileBasedRepository(Environment.CurrentDirectory);
 
             var sut = new PageService(repository, pathConverter);
+            sut.PostFilters.Add(new AnchorHeadings());
             var actual = sut.ParseString("", markdown);
 
-            actual.Body.Should().Contain("<h3 id=\"N3IvFragmentSecondaireMVC5\">N3 IvFragment Secondaire MVC5</h3>");
+            actual.Body.Should().Contain("<h3 id=\"n3-ivfragment-secondaire-mvc5\">N3 IvFragment Secondaire MVC5</h3>");
             var posTable = actual.Body.IndexOf("</table>");
-            var h3 = actual.Body.IndexOf("<h3 id=\"N3IvFragmentSecondaireMVC5");
+            var h3 = actual.Body.IndexOf("<h3 id=\"n3-ivfragment-secondaire-mvc5");
             posTable.Should().BeLessThan(h3);
         }
 

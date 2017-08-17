@@ -9,7 +9,6 @@ namespace MarkdownWeb
     public class PageService : IMarkdownParser
     {
         private readonly IPageRepository _repository;
-        private readonly string _rootUrlPath;
         private readonly IUrlPathConverter _urlPathConverter;
         private readonly MarkdownParser _markdown;
 

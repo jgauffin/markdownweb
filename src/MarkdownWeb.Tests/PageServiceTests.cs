@@ -1,5 +1,6 @@
 ﻿using System;
 using FluentAssertions;
+using MarkdownWeb.PostFilters;
 using MarkdownWeb.Storage.Files;
 using Xunit;
 
@@ -40,6 +41,21 @@ namespace MarkdownWeb.Tests
             actual.Body.Should()
                 .Contain("/intranet/page.md", "because links on same level should also work.");
         }
+
+        [Fact]
+        public void headings_should_get_ids_for_anchors()
+        {
+            var pathConverter = new UrlConverter("/intranet/");
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            sut.PostFilters.Add(new AnchorHeadings());
+            var actual = sut.ParseUrl("/intranet/FolderTest/other.md");
+
+            actual.Body.Should()
+                .Contain("id=\"this-is-id\"");
+        }
+
 
         [Fact]
         public void finds_http_link_correctly()

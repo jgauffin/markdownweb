@@ -20,8 +20,7 @@ namespace MarkdownWeb.Git.Storage
 
         public GitPageRepository(GitStorageConfiguration config)
         {
-            if (config == null) throw new ArgumentNullException(nameof(config));
-            _config = config;
+            _config = config ?? throw new ArgumentNullException(nameof(config));
 
             if (!Directory.Exists(Path.Combine(config.LocalDirectory, ".git")))
             {

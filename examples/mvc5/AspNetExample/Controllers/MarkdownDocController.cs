@@ -3,7 +3,6 @@ using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
 using MarkdownWeb;
-using MarkdownWeb.PostFilters;
 using MarkdownWeb.Storage;
 using MarkdownWeb.Storage.Files;
 
@@ -12,6 +11,11 @@ namespace AspNetExample.Controllers
     /// <summary>
     ///     To make this work, add "routes.MapMvcAttributeRoutes();" before the default route in "RouteConfig.cs"
     /// </summary>
+    /// <remarks>
+    ///     <para>
+    ///         All you need to do is to install the nuget packages and copy this controller to your own project. That's it!
+    ///     </para>
+    /// </remarks>
     public class MarkdownWebController : Controller
     {
         public const string URL = "doc/";
@@ -27,28 +31,17 @@ namespace AspNetExample.Controllers
             var baseUrl = Url.Content("~/" + URL);
 
             if (Request.QueryString["image"] != null)
-            {
                 return ServeImages(folderPath);
-            }
 
             var repository = new FileBasedRepository(folderPath);
             var exists = repository.Exists(path);
             if (Request.QueryString["editor"] != null || !exists)
-            {
                 return HandlePageEdits(path, exists, repository, baseUrl);
-            }
 
             var urlConverter = new UrlConverter(baseUrl);
             var parser = new PageService(repository, urlConverter);
             var result = parser.ParseUrl(baseUrl + path);
             return View("Index", result);
-        }
-
-        private ActionResult ServeImages(string folderPath)
-        {
-            var src = Request.QueryString["image"];
-            var mime = MimeMapping.GetMimeMapping(Path.GetFileName(src));
-            return File(Path.Combine(folderPath, src.Replace("/", "\\")), mime);
         }
 
         private ActionResult HandlePageEdits(string path, bool exists, FileBasedRepository repository, string baseUrl)
@@ -63,13 +56,20 @@ namespace AspNetExample.Controllers
             return View("Editor");
         }
 
+        private ActionResult ServeImages(string folderPath)
+        {
+            var src = Request.QueryString["image"];
+            var mime = MimeMapping.GetMimeMapping(Path.GetFileName(src));
+            return File(Path.Combine(folderPath, src.Replace("/", "\\")), mime);
+        }
+
         private void SubmitEditedPage(string wikiPagePath, bool pageExists, IPageRepository repository)
         {
             var title = Request.Form["Title"];
             if (string.IsNullOrEmpty(title))
             {
                 var body = Request.Form["Body"];
-                var pos = body.IndexOfAny(new[] { '\r', '\n' });
+                var pos = body.IndexOfAny(new[] {'\r', '\n'});
                 title = pos == -1 ? "" : body.Substring(0, pos);
             }
             var crudPage = new EditedPage
