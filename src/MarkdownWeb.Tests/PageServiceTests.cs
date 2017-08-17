@@ -211,7 +211,7 @@ for (int i = 0; i < 10; ++i)
 
 ");
 
-            actual.Body.Should().Contain(@"code data-lang=""csharp"" class=""language-csharp""");
+            actual.Body.Should().Contain(@"code class=""language-csharp""");
         }
     }
 }
