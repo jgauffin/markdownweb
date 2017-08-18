@@ -61,7 +61,7 @@ namespace MarkdownWeb
 
             var wikiPagePath = _urlPathConverter.MapUrlToWikiPath(websiteUrl);
             var page = new HtmlPage();
-            var pos = document.IndexOfAny(new[] {'\r', '\n'});
+            var pos = document.IndexOfAny(new[] { '\r', '\n' });
             page.Title = pos != -1 ? document.Substring(0, pos).TrimStart('#', ' ', '\t') : "";
 
             document = PreFilters.Execute(this, wikiPagePath, document);
@@ -74,6 +74,7 @@ namespace MarkdownWeb
             PostFilters.Execute(postContext);
             page.Body = postContext.HtmlToParse;
             page.Parts = postContext.GetParts();
+            page.WikiPath = wikiPagePath;
             return page;
         }
 
@@ -89,20 +90,21 @@ namespace MarkdownWeb
             }
             else
             {
-                var pos = storedPage.Body.IndexOfAny(new[] {'\r', '\n'});
+                var pos = storedPage.Body.IndexOfAny(new[] { '\r', '\n' });
                 page.Title = pos != -1 ? storedPage.Body.Substring(0, pos).TrimStart('#', ' ', '\t') : "";
             }
 
             page.Body = PreFilters.Execute(this, wikiPagePath, storedPage.Body);
-            
+
             _markdown.DefaultCodeLanguage = Configuration.DefaultCodeLanguage;
             _markdown.MissingPageStyle = Configuration.MissingLinkStyle;
             page.Body = _markdown.Parse(wikiPagePath, page.Body);
-            
+
             var postContext = new PostFilterContext(page.Body);
             PostFilters.Execute(postContext);
             page.Body = postContext.HtmlToParse;
             page.Parts = postContext.GetParts();
+            page.WikiPath = wikiPagePath;
             return page;
         }
 
@@ -110,6 +112,16 @@ namespace MarkdownWeb
         {
             var wikiPagePath = _urlPathConverter.MapUrlToWikiPath(url);
             var page = _repository.Get(wikiPagePath);
+            if (page == null)
+            {
+                return new HtmlPage()
+                {
+                    Body = "Missing page\r\n======================\r\n\r\n\r\nThe page specified is missing: " + url,
+                    Title = "Missing page",
+                    WikiPath = wikiPagePath
+                };
+            }
+
             return Parse(url, page);
         }
     }

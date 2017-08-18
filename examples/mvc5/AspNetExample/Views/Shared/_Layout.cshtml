@@ -3,10 +3,14 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - My ASP.NET Application</title>
+    <title>@ViewBag.Title - MarkdownWeb Example</title>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    
+    <!-- These two are for MarkdownWeb -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/vs.min.css" rel="stylesheet">
     <link href="/Content/MarkdownWeb.css" type="text/css" rel="stylesheet">
+    <!---->
+
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
 
@@ -54,15 +58,16 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    
+    <!-- These are for MarkdownWeb -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-
-    <script src="/scripts/dependencies/marked.min.js"></script>
-    <script src="/scripts/dependencies/Griffin.Editor.js"></script>
-
-    <script src="/scripts/dependencies/sequencediagrams/webfont.js"></script>
-    <script src="/scripts/dependencies/sequencediagrams/snap.svg-min.js"></script>
-    <script src="/scripts/dependencies/sequencediagrams/underscore-min.js"></script>
-    <script src="/scripts/dependencies/sequencediagrams/sequence-diagram-min.js"></script>
+    <script src="/scripts/MarkdownWeb/marked.min.js"></script>
+    <script src="/scripts/MarkdownWeb/Griffin.Editor.js"></script>
+    <script src="/scripts/MarkdownWeb/sequencediagrams/webfont.js"></script>
+    <script src="/scripts/MarkdownWeb/sequencediagrams/snap.svg-min.js"></script>
+    <script src="/scripts/MarkdownWeb/sequencediagrams/underscore-min.js"></script>
+    <script src="/scripts/MarkdownWeb/sequencediagrams/sequence-diagram-min.js"></script>
+    <!---->
 
     @RenderSection("scripts", required: false)
 </body>

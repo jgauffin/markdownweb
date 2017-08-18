@@ -53,7 +53,7 @@ namespace MarkdownWeb
 
             if (!websiteAbsolutePath.StartsWith(_rootAbsolutePath))
                 throw new InvalidOperationException(
-                    "Path doesn't start with the root path. It cannont be a wiki page: " + websiteAbsolutePath);
+                    "Path doesn't start with the root path. It cannot be a wiki page: " + websiteAbsolutePath);
 
             return websiteAbsolutePath.Remove(0, _rootAbsolutePath.Length);
         }

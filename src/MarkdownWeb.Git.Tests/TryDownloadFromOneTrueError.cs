@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using LibGit2Sharp;
 using LibGit2Sharp.Handlers;
-using MarkdownWeb.Git.Storage;
 using Xunit;
 
 namespace MarkdownWeb.Git.Tests
@@ -27,8 +26,9 @@ namespace MarkdownWeb.Git.Tests
         {
             var settings = new GitStorageConfiguration
             {
-                LocalDirectory = _path,
-                RepositoryUri = new Uri("https://github.com/gauffininteractive/OneTrueError.Documentation.git"),
+                FetchDirectory = _path,
+                DocumentationDirectory = Path.Combine(_path, "docs"),
+                RepositoryUri = new Uri("https://github.com/onetrueerror/OneTrueError.Documentation.git"),
             };
 
             using (var git = new GitPageRepository(settings))

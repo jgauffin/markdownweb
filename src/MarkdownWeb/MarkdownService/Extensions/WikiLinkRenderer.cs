@@ -38,6 +38,7 @@ namespace MarkdownWeb.MarkdownService.Extensions
                 return;
             }
 
+            link.Url = _context.UrlPathConverter.MapWikiPaths(_context.CurrentWikiPath, link.Url);
             bool pageIsMissing = IsPageMissing(link.Url) && !link.IsImage;
 
             if (renderer.EnableHtmlForInline)
@@ -46,12 +47,10 @@ namespace MarkdownWeb.MarkdownService.Extensions
 
                 if (link.IsImage)
                 {
-                    var url = _context.UrlPathConverter.MapWikiPaths(_context.CurrentWikiPath, link.Url);
-                    link.Url = _context.UrlPathConverter.ToWebPath("/") + "?image=" + url;
+                    link.Url = _context.UrlPathConverter.ToWebPath("/") + "?image=" + link.Url;
                 }
                 else
                 {
-                    var url = _context.UrlPathConverter.MapWikiPaths(_context.CurrentWikiPath, link.Url);
                     link.Url = _context.UrlPathConverter.ToWebPath(link.Url);
                 }
 

@@ -193,6 +193,17 @@ System         | Alias            | Nod 1            | Nod 2
             actual.Body.Should().Contain(@"id=""Parsespecific""");
         }
 
+        [Fact]
+        public void should_work_with_relative_link_to_subfolder_from_non_root_folder()
+        {
+            var pathConverter = new UrlConverter("/intranet/");
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseUrl("/intranet/FolderTest/index.md");
+
+            actual.Body.Should().Contain(@"/FolderTest/subfolder/twodoc.md");
+        }
 
         [Fact]
         public void parse_code_blocks()

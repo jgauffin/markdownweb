@@ -22,6 +22,11 @@ namespace MarkdownWeb
         public string Body { get; set; }
 
         /// <summary>
+        /// Path to the document (including "[pagename].md")
+        /// </summary>
+        public string WikiPath { get; set; }
+
+        /// <summary>
         ///     Parts generated for the markdown page.
         /// </summary>
         public IReadOnlyList<HtmlPart> Parts

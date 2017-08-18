@@ -16,9 +16,11 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <Version>1.0.0.0</Version>
   </PropertyGroup>
+  <Target Name="PostBuild" BeforeTargets="PostBuildEvent" Condition="'$(TargetFramework)' == 'net451'">
+    <Exec Command="copy /y $(TargetPath) $(SolutionDir)..\examples\mvc5\lib" />
+  </Target>
   <ItemGroup>
     <PackageReference Include="LibGit2Sharp" Version="0.23.1" />
     <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="1.0.164" />
