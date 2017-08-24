@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net451</TargetFramework>
+    <TargetFrameworks>net451;netstandard2.0</TargetFrameworks>
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <Authors>Jonas Gauffin</Authors>
     <PackageLicenseUrl>https://opensource.org/licenses/apache-2.0</PackageLicenseUrl>
@@ -16,14 +16,16 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
-    <Version>1.0.0.0</Version>
+    <PackageReleaseNotes>Added .NET Standard 2.0 as a target</PackageReleaseNotes>
+    <Version>1.0.1</Version>
   </PropertyGroup>
   <Target Name="PostBuild" BeforeTargets="PostBuildEvent" Condition="'$(TargetFramework)' == 'net451'">
     <Exec Command="copy /y $(TargetPath) $(SolutionDir)..\examples\mvc5\lib" />
   </Target>
   <ItemGroup>
-    <PackageReference Include="LibGit2Sharp" Version="0.23.1" />
-    <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="1.0.164" />
+    <PackageReference Include="LibGit2Sharp" Version="0.25.0-preview-0033" />
+    <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="1.0.185" />
+    <PackageReference Include="netstandard.library" Version="2.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MarkdownWeb\MarkdownWeb.csproj" />

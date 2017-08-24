@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using LibGit2Sharp;
 using MarkdownWeb.Storage;
 using MarkdownWeb.Storage.Files;
@@ -83,8 +84,12 @@ namespace MarkdownWeb.Git
                     DateTime.UtcNow.Subtract(File.GetLastWriteTimeUtc(cacheFile)) < _config.UpdateInterval)
                     return;
 
-                Commands.Fetch(_repos, "origin", new List<string>(), new FetchOptions(), "");
-                File.WriteAllText(cacheFile, "Now");
+                //do it in the background
+                Task.Run(() =>
+                {
+                    Commands.Fetch(_repos, "origin", new List<string>(), new FetchOptions(), "");
+                    File.WriteAllText(cacheFile, "Now");
+                });
             }
         }
 
