@@ -87,7 +87,7 @@ namespace MarkdownWeb.Git
                 //do it in the background
                 Task.Run(() =>
                 {
-                    Commands.Fetch(_repos, "origin", new List<string>(), new FetchOptions(), "");
+                    Commands.Fetch(_repos, "origin", new List<string>(), new FetchOptions(){}, "");
                     File.WriteAllText(cacheFile, "Now");
                 });
             }

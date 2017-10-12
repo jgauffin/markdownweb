@@ -18,6 +18,13 @@ namespace MarkdownWeb.MarkdownService.Extensions
 
         protected override void Write(HtmlRenderer renderer, LinkInline link)
         {
+            // just a [block]
+            if (link.Url == null)
+            {
+                renderer.Write($"[{link.Title}]");
+                return;
+            }
+
             if (link.Url.StartsWith("~"))
             {
                 link.Url = _context.UrlPathConverter.ToAbsolutePath(link.Url);

@@ -16,8 +16,8 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
-    <PackageReleaseNotes>Packages and added netstandard 2.0 as specific target</PackageReleaseNotes>
-    <version>1.3.4</version>
+    <PackageReleaseNotes>Corrected bugs for wiki link generation</PackageReleaseNotes>
+    <version>1.3.5</version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Markdig" version="0.13.1" />
