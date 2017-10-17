@@ -111,3 +111,4 @@ UpgradeLog*.XML
 *_NCrunch_*
 /.vs
 /.vs
+**/.vs/**

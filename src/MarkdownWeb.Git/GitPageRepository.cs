@@ -18,6 +18,7 @@ namespace MarkdownWeb.Git
         private readonly Repository _repos;
         private readonly object _syncLock = new object();
 
+
         public GitPageRepository(GitStorageConfiguration config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -31,6 +32,16 @@ namespace MarkdownWeb.Git
             _repos = new Repository(config.FetchDirectory);
             _fileBasedRepository = new FileBasedRepository(config.DocumentationDirectory);
         }
+
+        /// <summary>
+        /// Use this to be able to log errors that happen when the repos is fetched in the background.
+        /// </summary>
+        public Action<string, Exception> ErrorLogTask { get; set; }
+
+        /// <summary>
+        /// Invoked once a download have been completed.
+        /// </summary>
+        public Action DownloadCompleted { get; set; }
 
         private string CacheFile
         {
@@ -75,6 +86,9 @@ namespace MarkdownWeb.Git
             throw new NotSupportedException("Changes should be made directly in the git repository.");
         }
 
+        /// <summary>
+        /// Updates the already cloned git repos, thus it's not required that it runs for the requesting thread.
+        /// </summary>
         private void EnsureCache()
         {
             lock (_syncLock)
@@ -87,8 +101,17 @@ namespace MarkdownWeb.Git
                 //do it in the background
                 Task.Run(() =>
                 {
-                    Commands.Fetch(_repos, "origin", new List<string>(), new FetchOptions(){}, "");
-                    File.WriteAllText(cacheFile, "Now");
+                    try
+                    {
+                        Commands.Pull(_repos, new Signature("origin", "info@coderrapp.com", DateTimeOffset.UtcNow),
+                            new PullOptions() {MergeOptions = new MergeOptions {CommitOnSuccess = true,}});
+                        File.WriteAllText(cacheFile, "Now");
+                        DownloadCompleted?.Invoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        ErrorLogTask?.Invoke("Failed to pull origin", ex);
+                    }
                 });
             }
         }

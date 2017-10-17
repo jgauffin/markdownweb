@@ -16,8 +16,8 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
-    <PackageReleaseNotes>Added .NET Standard 2.0 as a target</PackageReleaseNotes>
-    <Version>1.0.1</Version>
+    <PackageReleaseNotes>Changed from fetch to pull</PackageReleaseNotes>
+    <Version>1.0.3</Version>
   </PropertyGroup>
   <Target Name="PostBuild" BeforeTargets="PostBuildEvent" Condition="'$(TargetFramework)' == 'net451'">
     <Exec Command="copy /y $(TargetPath) $(SolutionDir)..\examples\mvc5\lib" />
