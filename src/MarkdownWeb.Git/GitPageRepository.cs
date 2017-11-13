@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using LibGit2Sharp;
@@ -34,14 +33,19 @@ namespace MarkdownWeb.Git
         }
 
         /// <summary>
-        /// Use this to be able to log errors that happen when the repos is fetched in the background.
+        ///     Start from scratch if we can't get the repos (conflicts etc)
         /// </summary>
-        public Action<string, Exception> ErrorLogTask { get; set; }
+        public bool DeleteAndFetchOnErrors { get; set; }
 
         /// <summary>
-        /// Invoked once a download have been completed.
+        ///     Invoked once a download have been completed.
         /// </summary>
         public Action DownloadCompleted { get; set; }
+
+        /// <summary>
+        ///     Use this to be able to log errors that happen when the repos is fetched in the background.
+        /// </summary>
+        public Action<string, Exception> ErrorLogTask { get; set; }
 
         private string CacheFile
         {
@@ -50,6 +54,11 @@ namespace MarkdownWeb.Git
                 var cacheFile = Path.Combine(_config.FetchDirectory, "stamp.dat");
                 return cacheFile;
             }
+        }
+
+        public void Dispose()
+        {
+            _repos.Dispose();
         }
 
         public StoredPage Get(string wikiPagePath)
@@ -87,9 +96,9 @@ namespace MarkdownWeb.Git
         }
 
         /// <summary>
-        /// Updates the already cloned git repos, thus it's not required that it runs for the requesting thread.
+        ///     Updates the already cloned git repos, thus it's not required that it runs for the requesting thread.
         /// </summary>
-        private void EnsureCache()
+        private void EnsureCache(bool isFirstAttempt = true)
         {
             lock (_syncLock)
             {
@@ -104,21 +113,24 @@ namespace MarkdownWeb.Git
                     try
                     {
                         Commands.Pull(_repos, new Signature("origin", "info@coderrapp.com", DateTimeOffset.UtcNow),
-                            new PullOptions() {MergeOptions = new MergeOptions {CommitOnSuccess = true,}});
+                            new PullOptions {MergeOptions = new MergeOptions {CommitOnSuccess = true}});
                         File.WriteAllText(cacheFile, "Now");
                         DownloadCompleted?.Invoke();
                     }
                     catch (Exception ex)
                     {
-                        ErrorLogTask?.Invoke("Failed to pull origin", ex);
+                        if (DeleteAndFetchOnErrors && isFirstAttempt)
+                        {
+                            ErrorLogTask?.Invoke("Failed to pull origin, deleting and restarting.", ex);
+                            Directory.Delete(_config.FetchDirectory, true);
+                            EnsureCache(false);
+                        }
+                        else
+                            ErrorLogTask?.Invoke("Failed to pull origin, will retry later.", ex);
+
                     }
                 });
             }
-        }
-
-        public void Dispose()
-        {
-            _repos.Dispose();
         }
     }
 }
