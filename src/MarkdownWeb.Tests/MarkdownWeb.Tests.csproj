@@ -3,21 +3,19 @@
     <TargetFramework>net46</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NSubstitute" version="2.0.3" />
-    <PackageReference Include="FluentAssertions" version="4.19.3" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
-    <PackageReference Include="Microsoft.NETCore.Platforms" version="2.0.0" />
+    <PackageReference Include="NSubstitute" version="3.1.0" />
+    <PackageReference Include="FluentAssertions" version="4.19.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
+    <PackageReference Include="Microsoft.NETCore.Platforms" version="2.0.1" />
     <PackageReference Include="Microsoft.CodeCoverage" Version="1.0.3" />
     <PackageReference Include="NETStandard.Library" version="2.0.0" />
-    <PackageReference Include="xunit" version="2.2.0" />
+    <PackageReference Include="xunit" version="2.3.1" />
     <PackageReference Include="xunit.abstractions" version="2.0.1" />
-    <PackageReference Include="xunit.assert" version="2.2.0" />
-    <PackageReference Include="xunit.core" version="2.2.0" />
-    <PackageReference Include="xunit.extensibility.core" version="2.2.0" />
-    <PackageReference Include="xunit.extensibility.execution" version="2.2.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
-    <PackageReference Include="LibGit2Sharp" Version="0.25.0-preview-0033" />
-    <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="1.0.185" />
+    <PackageReference Include="xunit.assert" version="2.3.1" />
+    <PackageReference Include="xunit.core" version="2.3.1" />
+    <PackageReference Include="xunit.extensibility.core" version="2.3.1" />
+    <PackageReference Include="xunit.extensibility.execution" version="2.3.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MarkdownWeb\MarkdownWeb.csproj" />

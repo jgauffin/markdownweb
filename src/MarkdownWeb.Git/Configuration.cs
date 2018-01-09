@@ -4,10 +4,21 @@ using LibGit2Sharp;
 namespace MarkdownWeb.Git
 {
     /// <summary>
-    /// Configuration for <see cref="GitPageRepository"/>
+    ///     Configuration for <see cref="GitPageRepository" />
     /// </summary>
     public class GitStorageConfiguration
     {
+        /// <summary>
+        ///     Creates a new isntance of <see cref="GitStorageConfiguration" />
+        /// </summary>
+        public GitStorageConfiguration()
+        {
+            DocumentationDirectory = @"doc\";
+        }
+
+        /// <summary>
+        ///     Credentials for the repository.
+        /// </summary>
         public Credentials Credentials { get; set; }
 
         /// <summary>
@@ -27,17 +38,17 @@ namespace MarkdownWeb.Git
         public string FetchDirectory { get; set; }
 
         /// <summary>
-        /// https or ssh url for your git repository
+        ///     HTTPS or SSH url for your git repository
         /// </summary>
         public Uri RepositoryUri { get; set; }
 
         /// <summary>
-        /// How often we can check for updates (when someone requests the documentation)
+        ///     How often we should check for updates (when someone requests the documentation)
         /// </summary>
         /// <remarks>
-        /// <para>
-        /// Per default 30 seconds.
-        /// </para>
+        ///     <para>
+        ///         Per default 30 seconds.
+        ///     </para>
         /// </remarks>
         public TimeSpan UpdateInterval { get; set; }
     }

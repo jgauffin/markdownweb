@@ -18,13 +18,21 @@ namespace MarkdownWeb.Git
         private readonly object _syncLock = new object();
 
 
+        /// <summary>
+        /// Creates a new instance of <see cref="GitPageRepository"/>.
+        /// </summary>
+        /// <param name="config">Configuration options for GIT.</param>
         public GitPageRepository(GitStorageConfiguration config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            UpdateInBackground = true;
 
             if (!Directory.Exists(Path.Combine(config.FetchDirectory, ".git")))
             {
                 Repository.Clone(_config.RepositoryUri.ToString(), _config.FetchDirectory);
+                //var repos = new Repository(_config.FetchDirectory);
+                //var branch = repos.CreateBranch("master", "origin/master");
+                //Commands.Checkout(_repos, branch);
                 File.WriteAllText(CacheFile, "Now");
             }
 
@@ -33,19 +41,32 @@ namespace MarkdownWeb.Git
         }
 
         /// <summary>
-        ///     Start from scratch if we can't get the repos (conflicts etc)
+        ///     Start from scratch if we can't get the repository (conflicts etc)
         /// </summary>
+        /// <value>
+        ///     Default is <c>true</c>
+        /// </value>
         public bool DeleteAndFetchOnErrors { get; set; }
 
         /// <summary>
-        ///     Invoked once a download have been completed.
+        ///     Invoked once a pull/merge have been completed.
         /// </summary>
         public Action DownloadCompleted { get; set; }
 
         /// <summary>
-        ///     Use this to be able to log errors that happen when the repos is fetched in the background.
+        ///     Use this to be able to log errors that happen when the repository is fetched in the background.
         /// </summary>
-        public Action<string, Exception> ErrorLogTask { get; set; }
+        public Action<LogLevel, string, Exception> ErrorLogTask { get; set; }
+
+        /// <summary>
+        ///     Do all GIT operations in a background task (to not slow down the website).
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///         Default is <c>true</c>.
+        ///     </para>
+        /// </remarks>
+        public bool UpdateInBackground { get; set; }
 
         private string CacheFile
         {
@@ -56,49 +77,56 @@ namespace MarkdownWeb.Git
             }
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             _repos.Dispose();
         }
 
+        /// <inheritdoc />
         public StoredPage Get(string wikiPagePath)
         {
             EnsureCache();
             return _fileBasedRepository.Get(wikiPagePath);
         }
 
+        /// <inheritdoc />
         public StoredPage Get(string wikiPagePath, int revision)
         {
             EnsureCache();
             return _fileBasedRepository.Get(wikiPagePath);
         }
 
+        /// <inheritdoc />
         public PageMetadata[] GetRevisions(string wikiPagePath)
         {
             EnsureCache();
             return _fileBasedRepository.GetRevisions(wikiPagePath);
         }
 
+        /// <inheritdoc />
         public bool Exists(string wikiPagePath)
         {
             EnsureCache();
             return _fileBasedRepository.Exists(wikiPagePath);
         }
 
+        /// <inheritdoc />
         public void Create(string wikiPagePath, EditedPage page)
         {
             throw new NotSupportedException("Changes should be made directly in the git repository.");
         }
 
+        /// <inheritdoc />
         public void Update(string wikiPagePath, EditedPage page)
         {
             throw new NotSupportedException("Changes should be made directly in the git repository.");
         }
 
         /// <summary>
-        ///     Updates the already cloned git repos, thus it's not required that it runs for the requesting thread.
+        ///     Updates the already cloned git repository, thus it's not required that it runs for the requesting thread.
         /// </summary>
-        private void EnsureCache(bool isFirstAttempt = true)
+        private void EnsureCache()
         {
             lock (_syncLock)
             {
@@ -108,28 +136,38 @@ namespace MarkdownWeb.Git
                     return;
 
                 //do it in the background
-                Task.Run(() =>
-                {
-                    try
-                    {
-                        Commands.Pull(_repos, new Signature("origin", "info@coderrapp.com", DateTimeOffset.UtcNow),
-                            new PullOptions {MergeOptions = new MergeOptions {CommitOnSuccess = true}});
-                        File.WriteAllText(cacheFile, "Now");
-                        DownloadCompleted?.Invoke();
-                    }
-                    catch (Exception ex)
-                    {
-                        if (DeleteAndFetchOnErrors && isFirstAttempt)
-                        {
-                            ErrorLogTask?.Invoke("Failed to pull origin, deleting and restarting.", ex);
-                            Directory.Delete(_config.FetchDirectory, true);
-                            EnsureCache(false);
-                        }
-                        else
-                            ErrorLogTask?.Invoke("Failed to pull origin, will retry later.", ex);
+                if (UpdateInBackground)
+                    Task.Run(() => { SyncRepository(cacheFile, true); }).ContinueWith(x=>ErrorLogTask?.Invoke(LogLevel.Debug, "Pull completed", null));
+                else
+                    SyncRepository(cacheFile, true);
+            }
+        }
 
-                    }
-                });
+        private void SyncRepository(string cacheFile, bool isFirstAttempt)
+        {
+            try
+            {
+                ErrorLogTask?.Invoke(LogLevel.Info, "Attempting to pull form origin " + _config.RepositoryUri, null);
+                var user = new Signature("markdownweb", "info@markdownweb.com", DateTimeOffset.UtcNow);
+                var options = new PullOptions { MergeOptions = new MergeOptions { CommitOnSuccess = true } };
+                Commands.Pull(_repos, user, options);
+                //var originMaster=_repos.Branches["origin/master"];
+                //_repos.Merge(originMaster, user, new MergeOptions(){CommitOnSuccess = true})
+                File.WriteAllText(cacheFile, "Now");
+                DownloadCompleted?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                if (DeleteAndFetchOnErrors && isFirstAttempt)
+                {
+                    ErrorLogTask?.Invoke(LogLevel.Warning, "Failed to pull from origin, deleting and restarting.", ex);
+                    Directory.Delete(_config.FetchDirectory, true);
+                    SyncRepository(cacheFile, false);
+                }
+                else
+                {
+                    ErrorLogTask?.Invoke(LogLevel.Error, "Failed to pull from origin.", ex);
+                }
             }
         }
     }

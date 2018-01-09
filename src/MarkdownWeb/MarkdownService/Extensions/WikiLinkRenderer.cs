@@ -1,21 +1,31 @@
-﻿using Markdig.Renderers;
+﻿using System;
+using Markdig.Renderers;
 using Markdig.Renderers.Html;
 using Markdig.Renderers.Html.Inlines;
 using Markdig.Syntax.Inlines;
 
 namespace MarkdownWeb.MarkdownService.Extensions
 {
+    /// <summary>
+    /// Used to render real anchor links from wiki syntax. Must transform wiki relative URLs to absolute web site URLs.
+    /// </summary>
     public class WikiLinkRenderer : HtmlObjectRenderer<LinkInline>
     {
         private readonly LinkInlineRenderer _orgRenderer;
         private readonly MarkdownParserContext _context;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="WikiLinkRenderer"/>.
+        /// </summary>
+        /// <param name="orgRenderer">Original renderer in the MarkdownDig package.</param>
+        /// <param name="context">parser context</param>
         public WikiLinkRenderer(LinkInlineRenderer orgRenderer, MarkdownParserContext context)
         {
-            _orgRenderer = orgRenderer;
-            _context = context;
+            _orgRenderer = orgRenderer ?? throw new ArgumentNullException(nameof(orgRenderer));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
+        /// <inheritdoc />
         protected override void Write(HtmlRenderer renderer, LinkInline link)
         {
             // just a [block]

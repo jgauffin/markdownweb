@@ -12,6 +12,10 @@ namespace MarkdownWeb
         /// </summary>
         public static readonly HtmlPart Empty = new HtmlPart("");
 
+        /// <summary>
+        /// Creates new instance of <see cref="HtmlPart"/>.
+        /// </summary>
+        /// <param name="name">Name of this part, for instance "TableOfContents".</param>
         public HtmlPart(string name)
         {
             if (name == null) throw new ArgumentNullException("name");

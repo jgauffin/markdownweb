@@ -24,7 +24,7 @@ namespace MarkdownWeb.Git.Tests
         }
 
         [Fact]
-        public void should_be_able_to_download_once()
+        public void Should_be_able_to_download_once()
         {
             var waiter = new ManualResetEvent(false);
             var settings = new GitStorageConfiguration
@@ -44,7 +44,7 @@ namespace MarkdownWeb.Git.Tests
         }
 
         [Fact]
-        public void should_be_able_To_download_another_time_without_getting_sync_errors()
+        public void Should_be_able_To_download_another_time_without_getting_sync_errors()
         {
             var waiter = new ManualResetEvent(false);
             var settings = new GitStorageConfiguration
@@ -57,7 +57,7 @@ namespace MarkdownWeb.Git.Tests
 
             using (var git = new GitPageRepository(settings))
             {
-                git.ErrorLogTask = (s, exception) => Console.WriteLine(exception);
+                git.ErrorLogTask = (level, s, exception) => Console.WriteLine(exception);
                 git.DownloadCompleted = () => waiter.Set();
                 git.Exists("/");
                 waiter.WaitOne(5000).Should().BeTrue();
