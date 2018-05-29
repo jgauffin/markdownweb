@@ -28,14 +28,14 @@ namespace MarkdownWeb.PreFilters
             _filters.Clear();
         }
 
-        public string Execute(IMarkdownParser parser, string currentPagePath, string text)
+        public string Execute(IMarkdownParser parser, PageReference pageToRender, string text)
         {
             foreach (var filter in _filters)
             {
                 var context = new PreFilterContext(parser)
                 {
                     TextToParse = text,
-                    CurrentPagePath = currentPagePath,
+                    RequestedPage = pageToRender,
                 };
                 text = filter.Parse(context);
             }

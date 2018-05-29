@@ -1,0 +1,15 @@
+﻿@model System.Collections.Generic.List<MarkdownWeb.PageSummary>
+
+@{
+    ViewBag.Title = "Pages";
+    Layout = "_Layout";
+}
+
+<h2>Pages</h2>
+
+@foreach (var page in Model)
+{
+    <h3>@page.Title</h3>
+    <div>@page.Abstract</div>
+    <a href="@page.Url">Visit</a>
+}

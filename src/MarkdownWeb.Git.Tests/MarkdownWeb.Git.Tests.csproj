@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NSubstitute" version="3.1.0" />
-    <PackageReference Include="FluentAssertions" version="4.19.4" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
+    <PackageReference Include="FluentAssertions" version="5.3.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
     <PackageReference Include="xunit" version="2.3.1" />
     <PackageReference Include="xunit.abstractions" version="2.0.1" />
     <PackageReference Include="xunit.assert" version="2.3.1" />
@@ -13,8 +13,8 @@
     <PackageReference Include="xunit.extensibility.core" version="2.3.1" />
     <PackageReference Include="xunit.extensibility.execution" version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
-    <PackageReference Include="LibGit2Sharp" Version="0.24.0" />
-    <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="1.0.185" />
+    <PackageReference Include="LibGit2Sharp" Version="0.25.0" />
+    <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="1.0.210" />
 
   </ItemGroup>
   <ItemGroup>

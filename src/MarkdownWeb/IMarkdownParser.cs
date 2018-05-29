@@ -8,9 +8,9 @@ namespace MarkdownWeb
         /// <summary>
         /// Parse a parkdown document
         /// </summary>
-        /// <param name="currentPagePath">Path to the page which is passed as <c>text</c>.</param>
+        /// <param name="currentPage">Path to the page which is passed as <c>text</c>.</param>
         /// <param name="text">Markdown document</param>
         /// <returns>HTML</returns>
-        string Parse(string currentPagePath, string text);
+        string Parse(PageReference currentPage, string text);
     }
 }

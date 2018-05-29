@@ -8,7 +8,6 @@ namespace MarkdownWeb.MarkdownService
     {
         private readonly IUrlPathConverter _pathConverter;
         private readonly IPageRepository _repository;
-        private string _currentWikiPath;
 
         public MarkdownParser(IUrlPathConverter pathConverter, IPageRepository repository)
         {
@@ -20,20 +19,15 @@ namespace MarkdownWeb.MarkdownService
         public string DefaultCodeLanguage { get; set; }
         public string MissingPageStyle { get; set; }
 
-        public string Parse(string currentWikiPath, string markdownDocument)
+        public string Parse(MarkdownParserContext context, string markdown)
         {
-            _currentWikiPath = currentWikiPath;
-            var context = new MarkdownParserContext
-            {
-                CurrentWikiPath = currentWikiPath,
-                UrlPathConverter = _pathConverter,
-                PageRepository = _repository
-            };
             var builder = new MarkdownPipelineBuilder();
             builder.UseAdvancedExtensions();
-            builder.Extensions.AddIfNotAlready(new WikiLinkExtension(context));
+            builder.UseAutoLinks();
+            
+            builder.Extensions.AddIfNotAlready(new LinkRendererExtension(context));
             var pipeline= builder.Build();
-            return Markdown.ToHtml(markdownDocument, pipeline);
+            return Markdown.ToHtml(markdown, pipeline);
         }
 
     }

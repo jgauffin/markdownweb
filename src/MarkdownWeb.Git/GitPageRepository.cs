@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using LibGit2Sharp;
@@ -10,7 +11,7 @@ namespace MarkdownWeb.Git
     /// <summary>
     ///     Makes sure that the lastest source code is downloaded.
     /// </summary>
-    public class GitPageRepository : IPageRepository, IDisposable
+    public class GitPageRepository : IPageRepository, IDisposable, IPageSource
     {
         private readonly GitStorageConfiguration _config;
         private readonly FileBasedRepository _fileBasedRepository;
@@ -104,6 +105,12 @@ namespace MarkdownWeb.Git
             return _fileBasedRepository.GetRevisions(wikiPagePath);
         }
 
+        public IEnumerable<string> GetAllPagesAsLinks()
+        {
+            EnsureCache();
+            return _fileBasedRepository.GetAllPagesAsLinks();
+        }
+
         /// <inheritdoc />
         public bool Exists(string wikiPagePath)
         {
@@ -169,6 +176,11 @@ namespace MarkdownWeb.Git
                     ErrorLogTask?.Invoke(LogLevel.Error, "Failed to pull from origin.", ex);
                 }
             }
+        }
+
+        public bool PageExists(PageReference page)
+        {
+            return Exists(page.RealWikiPath + page.Filename);
         }
     }
 }

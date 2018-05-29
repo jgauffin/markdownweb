@@ -1,0 +1,12 @@
+﻿@model System.Collections.Generic.List<MarkdownWeb.MissingPage>
+@{
+    ViewBag.Title = "Pages";
+}
+
+<h2>Missing pages</h2>
+
+@foreach (var page in Model)
+{
+    <h3>@page.Url</h3>
+    <div>@string.Join(", ", page.References)</div>
+}

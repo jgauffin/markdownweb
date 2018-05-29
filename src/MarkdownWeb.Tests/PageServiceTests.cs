@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Linq;
 using FluentAssertions;
 using MarkdownWeb.PostFilters;
 using MarkdownWeb.Storage.Files;
+using NSubstitute;
 using Xunit;
 
 namespace MarkdownWeb.Tests
@@ -11,7 +13,9 @@ namespace MarkdownWeb.Tests
         [Fact]
         public void parses_image_link_correctly()
         {
-            var pathConverter = new UrlConverter("/intranet/");
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
             var sut = new PageService(repository, pathConverter);
@@ -20,15 +24,26 @@ namespace MarkdownWeb.Tests
             actual.Body.Should().Contain("/intranet/?image=/NoDoc/image.png");
         }
 
-        private string OnResolvePath(string arg)
+        [Fact]
+        public void parses_image_link_correctly_when_using_path_alias_for_document()
         {
-            return arg.TrimStart('~');
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseUrl("/intranet/foldertest/other/");
+
+            actual.Body.Should().Contain("/intranet/?image=/NoDoc/image.png");
         }
 
         [Fact]
         public void parses_page_link_correctly()
         {
-            var pathConverter = new UrlConverter("/intranet/");
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
             var sut = new PageService(repository, pathConverter);
@@ -43,9 +58,30 @@ namespace MarkdownWeb.Tests
         }
 
         [Fact]
+        public void parses_page_link_correctly_when_using_path_alias()
+        {
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseUrl("/intranet/FolderTest/subdocWithLinks/");
+
+            actual.Body.Should()
+                .Contain("/intranet/page", "because links are clickable and not wiki relative in the HTML pages.");
+            actual.Body.Should()
+                .Contain("/intranet/FolderTest/other", "because path links to other folders should be supported");
+            actual.Body.Should()
+                .Contain("/intranet/FolderTest/subfolder/twodoc", "because links on same level should also work.");
+        }
+
+        [Fact]
         public void headings_should_get_ids_for_anchors()
         {
-            var pathConverter = new UrlConverter("/intranet/");
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
             var sut = new PageService(repository, pathConverter);
@@ -60,7 +96,9 @@ namespace MarkdownWeb.Tests
         [Fact]
         public void finds_http_link_correctly()
         {
-            var pathConverter = new UrlConverter("/intranet/");
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
             var sut = new PageService(repository, pathConverter);
@@ -76,8 +114,11 @@ http://this.link
         [Fact]
         public void finds_www_link_correctly()
         {
-            var pathConverter = new UrlConverter("/intranet/");
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+            var reference = new PageReference("/" , "/", "index.md");
 
             var sut = new PageService(repository, pathConverter);
             var actual = sut.ParseString("/intranet/", @"
@@ -94,7 +135,9 @@ link
         [Fact]
         public void do_not_destroy_regular_anchor_links()
         {
-            var pathConverter = new UrlConverter("/intranet/");
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
             var sut = new PageService(repository, pathConverter);
@@ -112,7 +155,9 @@ link
         [Fact]
         public void finds_unc_path_correctly()
         {
-            var pathConverter = new UrlConverter("/intranet/");
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
             var sut = new PageService(repository, pathConverter);
@@ -128,7 +173,9 @@ link
         [Fact]
         public void markdown_parsing_does_not_destroy_tables()
         {
-            var pathConverter = new UrlConverter("/intranet/");
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
             var sut = new PageService(repository, pathConverter);
@@ -149,7 +196,9 @@ http://autolink.com | yeay | wow
         [Fact]
         public void markdown_parsing_does_not_destroy_more_complex_tables()
         {
-            var pathConverter = new UrlConverter("/intranet/");
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
             var sut = new PageService(repository, pathConverter);
@@ -180,7 +229,9 @@ System         | Alias            | Nod 1            | Nod 2
         [Fact]
         public void headings_should_be_anchored()
         {
-            var pathConverter = new UrlConverter("/intranet/");
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
             var sut = new PageService(repository, pathConverter);
@@ -196,7 +247,9 @@ System         | Alias            | Nod 1            | Nod 2
         [Fact]
         public void should_work_with_relative_link_to_subfolder_from_non_root_folder()
         {
-            var pathConverter = new UrlConverter("/intranet/");
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
             var sut = new PageService(repository, pathConverter);
@@ -206,9 +259,39 @@ System         | Alias            | Nod 1            | Nod 2
         }
 
         [Fact]
+        public void Should_not_mark_exisiting_links_as_missing()
+        {
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseUrl("/intranet/withlink.md");
+
+            actual.Links.All(x => x.IsMissing != true).Should().BeTrue();
+        }
+
+        [Fact]
+        public void Should_mark_missing_links_as_missing()
+        {
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseUrl("/intranet/page.md");
+
+            actual.Links.Any(x => x.IsMissing == true).Should().BeTrue();
+        }
+
+        [Fact]
         public void parse_code_blocks()
         {
-            var pathConverter = new UrlConverter("/intranet/");
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
             var sut = new PageService(repository, pathConverter);
@@ -223,6 +306,37 @@ for (int i = 0; i < 10; ++i)
 ");
 
             actual.Body.Should().Contain(@"code class=""language-csharp""");
+        }
+
+        
+        [Fact]
+        public void ListAllPages()
+        {
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.GetPages();
+
+            actual.First().Url.Should().Be("/intranet/");
+            actual[1].Url.Should().Be("/intranet/page.md");
+        }
+
+        [Fact]
+        public void ListMissingPages()
+        {
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.GetMissingPages();
+
+            actual[0].Url.Should().Be("/intranet/someMissingPage");
+            actual[0].References[0].Should().Be("/page.md");
         }
     }
 }

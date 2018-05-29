@@ -20,6 +20,14 @@ namespace AspNetExample.Controllers
     {
         public const string URL = "doc/";
         public const string DIRECTORY = "~/App_Data/Markdown/";
+        private string _folderPath;
+        private string _baseUrl;
+
+        public MarkdownWebController()
+        {
+            _folderPath = HostingEnvironment.MapPath(DIRECTORY);
+            _baseUrl = Url.Content("~/" + URL);
+        }
 
         [Route(URL + "{*path}")]
         public ActionResult Index(string path)
@@ -27,21 +35,29 @@ namespace AspNetExample.Controllers
             if (path == null)
                 path = "";
 
-            var folderPath = HostingEnvironment.MapPath(DIRECTORY);
-            var baseUrl = Url.Content("~/" + URL);
+           
 
             if (Request.QueryString["image"] != null)
-                return ServeImages(folderPath);
+                return ServeImages(_folderPath);
 
-            var repository = new FileBasedRepository(folderPath);
+            var repository = new FileBasedRepository(_folderPath);
             var exists = repository.Exists(path);
             if (Request.QueryString["editor"] != null || !exists)
-                return HandlePageEdits(path, exists, repository, baseUrl);
+                return HandlePageEdits(path, exists, repository, _baseUrl);
 
-            var urlConverter = new UrlConverter(baseUrl);
-            var parser = new PageService(repository, urlConverter);
-            var result = parser.ParseUrl(baseUrl + path);
+            var urlConverter = new UrlConverter(_baseUrl, repository);
+            var pageService = new PageService(repository, urlConverter);
+            var result = pageService.ParseUrl(_baseUrl + path);
             return View("Index", result);
+        }
+
+        public ActionResult Pages()
+        {
+            var repository = new FileBasedRepository(_folderPath);
+            var urlConverter = new UrlConverter(_baseUrl, repository);
+            var pageService = new PageService(repository, urlConverter);
+            var result = pageService.GetPages();
+            return View(result);
         }
 
         private ActionResult HandlePageEdits(string path, bool exists, FileBasedRepository repository, string baseUrl)

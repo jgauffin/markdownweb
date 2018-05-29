@@ -1,4 +1,6 @@
-﻿namespace MarkdownWeb.Storage
+﻿using System.Collections.Generic;
+
+namespace MarkdownWeb.Storage
 {
     /// <summary>
     ///     Used to fetch information from the storage.
@@ -25,6 +27,12 @@
         /// <param name="wikiPagePath">Relative to the wiki root</param>
         /// <returns>Metadata if page was found; otherwise <c>null</c>.</returns>
         PageMetadata[] GetRevisions(string wikiPagePath);
+
+        /// <summary>
+        /// List all pages (as links from root)
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<string> GetAllPagesAsLinks();
 
         /// <summary>
         ///     Check if page exists

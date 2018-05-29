@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using MarkdownWeb.PostFilters;
 using MarkdownWeb.Storage.Files;
+using NSubstitute;
 using Xunit;
 
 namespace MarkdownWeb.Tests
@@ -16,6 +17,8 @@ namespace MarkdownWeb.Tests
         [Fact]
         public void Issue1_dont_screw_up_the_page_when_using_tables()
         {
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
             var markdown = @"
 ### Liste des paquets Nuget pour IvFragment Secondaire N3.
 
@@ -35,12 +38,12 @@ Quelques modifications seront exécutées dans le fichier de config pour install
 
 The result code is like below; it is missing a th closing tag and merge the rest of the document in the table.
 ";
-            var pathConverter = new UrlConverter("/");
+            var pathConverter = new UrlConverter("/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory);
 
             var sut = new PageService(repository, pathConverter);
             sut.PostFilters.Add(new AnchorHeadings());
-            var actual = sut.ParseString("", markdown);
+            var actual = sut.ParseString(new PageReference("/", "/", "index.md"), markdown);
 
             actual.Body.Should().Contain("<h3 id=\"n3-ivfragment-secondaire-mvc5\">N3 IvFragment Secondaire MVC5</h3>");
             var posTable = actual.Body.IndexOf("</table>");
@@ -52,7 +55,9 @@ The result code is like below; it is missing a th closing tag and merge the rest
         [Fact]
         public void Work_with_The_onetrueerror_page()
         {
-            var pathConverter = new UrlConverter("/");
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory);
 
 
@@ -124,22 +129,9 @@ public ActionResult Save(AccountViewModel model)
             #endregion
 
             var parser = new PageService(repository, pathConverter);
-            var actual = parser.ParseString("", markdown);
+            var actual = parser.ParseString(new PageReference("/", "/", "index.md"), markdown);
 
         }
 
-        [Fact]
-        public void autolinks_should_end_with_apostrophe()
-        {
-            var pathConverter = new UrlConverter("/");
-            var repository = new FileBasedRepository(Environment.CurrentDirectory);
-            var md =
-                @"Some page with a link IF(@message_type = 'http://schemas.microsoft.com/SQL/ServiceBroker/EndDialog') hello";
-
-            var parser = new PageService(repository, pathConverter);
-            var actual = parser.ParseString("", md);
-
-            actual.Body.Should().Contain("'</a>");
-        }
     }
 }

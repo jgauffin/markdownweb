@@ -1,5 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using MarkdownWeb.Helpers;
 using MarkdownWeb.MarkdownService;
+using MarkdownWeb.MarkdownService.Extensions;
 using MarkdownWeb.PostFilters;
 using MarkdownWeb.PreFilters;
 using MarkdownWeb.Storage;
@@ -8,9 +14,9 @@ namespace MarkdownWeb
 {
     public class PageService : IMarkdownParser
     {
+        private readonly MarkdownParser _markdown;
         private readonly IPageRepository _repository;
         private readonly IUrlPathConverter _urlPathConverter;
-        private readonly MarkdownParser _markdown;
 
         /// <summary>
         ///     Create a new instance of <see cref="PageService" />.
@@ -28,9 +34,9 @@ namespace MarkdownWeb
         }
 
         /// <summary>
-        ///     Used to modify the text before it's given to the markdown parser.
+        ///     Specifies how the service should behave in different scenarios.
         /// </summary>
-        public PreFilterCollection PreFilters { get; private set; }
+        public PageServiceConfiguration Configuration { get; set; }
 
         /// <summary>
         ///     Used to process the generated HTML once it's been created by the markdown parser.
@@ -38,91 +44,219 @@ namespace MarkdownWeb
         public PostFilterCollection PostFilters { get; private set; }
 
         /// <summary>
-        ///     Specifies how the service should behave in different scenarios.
+        ///     Used to modify the text before it's given to the markdown parser.
         /// </summary>
-        public PageServiceConfiguration Configuration { get; set; }
+        public PreFilterCollection PreFilters { get; private set; }
 
-        string IMarkdownParser.Parse(string currentPagePath, string text)
+        string IMarkdownParser.Parse(PageReference pageToRender, string text)
         {
-            var url = _urlPathConverter.ToWebPath(currentPagePath);
-            return ParseString(url, text).Body;
+            return ParseString(pageToRender, text).Body;
+        }
+
+        public HtmlPage ParseString(string websiteUrl, string document)
+        {
+            var reference = _urlPathConverter.MapUrlToWikiPath(websiteUrl);
+            return ParseString(reference, document);
         }
 
         /// <summary>
         ///     Parse a string
         /// </summary>
-        /// <param name="websiteUrl">Path to the page in your web site</param>
+        /// <param name="pageReference">Path to the page in your web site</param>
         /// <param name="document">Markdown document</param>
         /// <returns>Generated page</returns>
-        public HtmlPage ParseString(string websiteUrl, string document)
+        public HtmlPage ParseString(PageReference pageReference, string document)
         {
-            if (websiteUrl == null) throw new ArgumentNullException("websiteUrl");
+            if (pageReference == null) throw new ArgumentNullException("pageReference");
             if (document == null) throw new ArgumentNullException("document");
-
-            var wikiPagePath = _urlPathConverter.MapUrlToWikiPath(websiteUrl);
-            var page = new HtmlPage();
-            var pos = document.IndexOfAny(new[] { '\r', '\n' });
-            page.Title = pos != -1 ? document.Substring(0, pos).TrimStart('#', ' ', '\t') : "";
-
-            document = PreFilters.Execute(this, wikiPagePath, document);
-
-            _markdown.DefaultCodeLanguage = Configuration.DefaultCodeLanguage;
-            _markdown.MissingPageStyle = Configuration.MissingLinkStyle;
-            document = _markdown.Parse(wikiPagePath, document);
-
-            var postContext = new PostFilterContext(document);
-            PostFilters.Execute(postContext);
-            page.Body = postContext.HtmlToParse;
-            page.Parts = postContext.GetParts();
-            page.WikiPath = wikiPagePath;
-            return page;
-        }
-
-        private HtmlPage Parse(string websiteUrl, StoredPage storedPage)
-        {
-            if (websiteUrl == null) throw new ArgumentNullException("websiteUrl");
-
-            var wikiPagePath = _urlPathConverter.MapUrlToWikiPath(websiteUrl);
-            var page = new HtmlPage();
-            if (!string.IsNullOrEmpty(storedPage.Title))
-            {
-                page.Title = storedPage.Title;
-            }
-            else
-            {
-                var pos = storedPage.Body.IndexOfAny(new[] { '\r', '\n' });
-                page.Title = pos != -1 ? storedPage.Body.Substring(0, pos).TrimStart('#', ' ', '\t') : "";
-            }
-
-            page.Body = PreFilters.Execute(this, wikiPagePath, storedPage.Body);
-
-            _markdown.DefaultCodeLanguage = Configuration.DefaultCodeLanguage;
-            _markdown.MissingPageStyle = Configuration.MissingLinkStyle;
-            page.Body = _markdown.Parse(wikiPagePath, page.Body);
-
-            var postContext = new PostFilterContext(page.Body);
-            PostFilters.Execute(postContext);
-            page.Body = postContext.HtmlToParse;
-            page.Parts = postContext.GetParts();
-            page.WikiPath = wikiPagePath;
-            return page;
+            return Parse(pageReference, document);
         }
 
         public HtmlPage ParseUrl(string url)
         {
             var wikiPagePath = _urlPathConverter.MapUrlToWikiPath(url);
-            var page = _repository.Get(wikiPagePath);
-            if (page == null)
+            var page = wikiPagePath == null
+                ? null
+                : _repository.Get(wikiPagePath.ToString());
+
+            if (page != null)
+                return Parse(wikiPagePath, page.Body);
+
+            var wikiPath = _urlPathConverter.RemoveWebRoot(url);
+            var allPages = GetPages();
+            var pages = allPages
+                .Where(x => x.PageReference.RealWikiPath.StartsWith(wikiPath))
+                .ToList();
+            if (pages.Any())
             {
-                return new HtmlPage()
+                var body = new StringBuilder();
+                body.AppendLine("<h1>Page list</h1>");
+                body.AppendLine("<ul class=\"pagelist\">");
+                foreach (var subPage in pages)
                 {
-                    Body = "Missing page\r\n======================\r\n\r\n\r\nThe page specified is missing: " + url,
-                    Title = "Missing page",
-                    WikiPath = wikiPagePath
+                    body.AppendLine($"<li><a href=\"{subPage.Url}\">{subPage.Title}</li>");
+                }
+                body.AppendLine("</ul>");
+
+                return new HtmlPage
+                {
+                    Body = body.ToString(),
+                    Title = "Page list",
+                    WikiPageReference = wikiPagePath
                 };
             }
 
-            return Parse(url, page);
+            var pagesUrl=_urlPathConverter.ToWebUrl("/pages/");
+            return new HtmlPage
+            {
+                
+                Body =
+                    $@"<h1>Missing page</h1>
+                    <p>The page specified is missing: {url}</p>
+                    <p>Try our page list to find the correct page: <a href=""{pagesUrl}"">Page list</a>",
+                Title = "Missing page",
+                WikiPageReference = wikiPagePath
+            };
+
+
+        }
+
+        public List<PageSummary> GetPages()
+        {
+            List<PageSummary> pages = new List<PageSummary>();
+            var links = _repository.GetAllPagesAsLinks();
+            foreach (var pageLink in links)
+            {
+                var webUrl = _urlPathConverter.ToWebUrl(pageLink);
+                var reference = _urlPathConverter.MapUrlToWikiPath(webUrl);
+                var page = _repository.Get(pageLink);
+                if (string.IsNullOrEmpty(page.Body))
+                    continue;
+
+                var parsedPage = Parse(reference, page.Body);
+                if (webUrl.EndsWith("index.md"))
+                    webUrl = webUrl.Remove(webUrl.Length - 8);
+
+                pages.Add(new PageSummary
+                {
+                    Abstract = parsedPage.Abstract,
+                    Title = parsedPage.Title,
+                    Url = webUrl,
+                    PageReference = reference
+                });
+            }
+
+            return pages;
+        }
+
+        public List<MissingPage> GetMissingPages()
+        {
+            List<MissingPage> pages = new List<MissingPage>();
+            var links = _repository.GetAllPagesAsLinks();
+            foreach (var pageLink in links)
+            {
+                var url = _urlPathConverter.ToWebUrl(pageLink);
+                var reference = _urlPathConverter.MapUrlToWikiPath(url);
+                var page = _repository.Get(pageLink);
+                var parsedPage = Parse(reference, page.Body);
+
+                foreach (var link in parsedPage.Links)
+                {
+                    if (link.IsMissing == true)
+                    {
+                        var existingPage = pages.FirstOrDefault(x => x.Url == link.Url);
+                        if (existingPage != null)
+                            existingPage.References.Add(pageLink);
+                        else
+                            pages.Add(new MissingPage { Url = link.Url, References = new List<string> { pageLink } });
+                    }
+                }
+            }
+
+            return pages;
+        }
+
+        private HtmlPage Parse(PageReference pageReference, string markdown)
+        {
+            if (pageReference == null) throw new ArgumentNullException(nameof(pageReference));
+            if (markdown == null) throw new ArgumentNullException(nameof(markdown));
+
+            var page = PreProcessMarkdown(markdown);
+            page.Body = PreFilters.Execute(this, pageReference, page.Body);
+            _markdown.DefaultCodeLanguage = Configuration.DefaultCodeLanguage;
+            _markdown.MissingPageStyle = Configuration.MissingLinkStyle;
+
+            var links = new List<PageLink>();
+            var context = new MarkdownParserContext(_repository, links)
+            {
+                RequestedPage = pageReference,
+                UrlPathConverter = _urlPathConverter
+            };
+            page.Body = _markdown.Parse(context, page.Body);
+
+            var postContext = new PostFilterContext(page.Body);
+            PostFilters.Execute(postContext);
+            page.Body = postContext.HtmlToParse;
+            page.Parts = postContext.GetParts();
+            page.WikiPageReference = pageReference;
+            page.Links = links;
+            return page;
+        }
+
+        private HtmlPage PreProcessMarkdown(string markdown)
+        {
+            var textReader = new StringReader(markdown);
+            textReader.SkipEmptyLines();
+            var heading = textReader.ReadLine();
+            if (heading == null)
+                return null;
+
+            var isHeading = heading.StartsWith("#");
+            heading = heading.TrimStart('#');
+
+            if (textReader.Peek() == '=')
+            {
+                isHeading = true;
+                textReader.ReadLine();
+            }
+
+            var articleBody = new StringBuilder();
+            var articleAbstract = "";
+            if (isHeading)
+            {
+                textReader.SkipEmptyLines();
+                articleAbstract = textReader.ReadUntilEmptyLine();
+            }
+            else
+            {
+                articleBody.AppendLine(heading);
+            }
+
+            var headers = new Dictionary<string, string>();
+            while (true)
+            {
+                var line = textReader.ReadLine();
+                if (line == null)
+                    break;
+
+                if (!line.StartsWith("$") || !line.Contains(":"))
+                {
+                    articleBody.AppendLine(line);
+                    continue;
+                }
+
+                var pos = line.IndexOf(':');
+                var key = line.Substring(1, pos);
+                var value = line.Substring(pos + 1);
+                headers.Add(key, value);
+            }
+
+            return new HtmlPage
+            {
+                Body = $"{articleAbstract}\r\n\r\n{articleBody}",
+                Title = heading,
+                Abstract = articleAbstract
+            };
         }
     }
 }

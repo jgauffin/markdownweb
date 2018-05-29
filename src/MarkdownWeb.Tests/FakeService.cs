@@ -12,5 +12,10 @@ namespace MarkdownWeb.Tests
         {
             return text;
         }
+
+        public string Parse(PageReference currentPage, string text)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

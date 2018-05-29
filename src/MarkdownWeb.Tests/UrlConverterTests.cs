@@ -1,16 +1,21 @@
 ﻿using FluentAssertions;
+using NSubstitute;
 using Xunit;
 
 namespace MarkdownWeb.Tests
 {
     public class UrlConverterTests
     {
+        public UrlConverterTests()
+        {
+        }
         [Fact]
         public void getting_root_should_give_us_the_index_document_from_the_root()
         {
+            var pageSource = Substitute.For<IPageSource>();
 
-            var sut = new UrlConverter("/intranet/");
-            var actual = sut.ToWebPath("/");
+            var sut = new UrlConverter("/intranet/", pageSource);
+            var actual = sut.ToWebUrl("/");
 
             actual.Should().Be("/intranet/");
         }
@@ -18,10 +23,10 @@ namespace MarkdownWeb.Tests
         [Fact]
         public void wiki_path_should_be_appended_to_the_root_url()
         {
+            var pageSource = Substitute.For<IPageSource>();
 
-
-            var sut = new UrlConverter("/trafikinfo/Intranet/doc/");
-            var actual = sut.ToWebPath("/FolderTest/");
+            var sut = new UrlConverter("/trafikinfo/Intranet/doc/", pageSource);
+            var actual = sut.ToWebUrl("/FolderTest/");
 
             actual.Should().Be("/trafikinfo/Intranet/doc/FolderTest/");
         }
@@ -29,116 +34,36 @@ namespace MarkdownWeb.Tests
         [Fact]
         public void drop_root_url_from_wiki_url()
         {
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
 
-
-            var sut = new UrlConverter("/intranet/");
+            var sut = new UrlConverter("/intranet/", pageSource);
             var actual = sut.MapUrlToWikiPath("/intranet/");
 
-            actual.Should().Be("/");
+            actual.RealWikiPath.Should().Be("/");
         }
 
         [Fact]
-        public void page_links_should_work_when_both_are_on_start_level()
+        public void drop_root_url_from_wiki_url_when_trailing_slash_is_missing()
         {
+            var pageSource = Substitute.For<IPageSource>();
 
-            var sut = new UrlConverter("/intranet/");
-            var actual = sut.MapWikiPaths("/withlink", "page");
+            var sut = new UrlConverter("/intranet/", pageSource);
+            var actual = sut.MapUrlToWikiPath("/intranet");
 
-            actual.Should().Be("/page");
-        }
-
-        [Fact]
-        public void page_links_should_work_linking_one_level_up()
-        {
-
-            var sut = new UrlConverter("/intranet/");
-            var actual = sut.MapWikiPaths("/withlink/is", "../page");
-
-            actual.Should().Be("/page");
-        }
-
-        [Fact]
-        public void page_links_when_relative_to_same_level()
-        {
-
-            var sut = new UrlConverter("/intranet/");
-            var actual = sut.MapWikiPaths("/withlink/is", "../more/page");
-
-            actual.Should().Be("/more/page");
-        }
-
-        [Fact]
-        public void page_links_when_linking_deeper()
-        {
-
-            var sut = new UrlConverter("/intranet/");
-            var actual = sut.MapWikiPaths("/is", "../more/page");
-
-            actual.Should().Be("/more/page");
+            actual.RealWikiPath.Should().Be("/");
         }
 
 
         [Fact]
         public void empty_string_should_give_us_the_index_document_from_the_root()
         {
+            var pageSource = Substitute.For<IPageSource>();
 
-            var sut = new UrlConverter("/");
+            var sut = new UrlConverter("/", pageSource);
             var actual = sut.MapUrlToWikiPath("");
 
-            actual.Should().Be("/");
-        }
-
-
-        [Fact]
-        public void linking_root_should_work_from_sub_folder()
-        {
-
-
-            var sut = new UrlConverter("/intranet/");
-            var actual = sut.MapWikiPaths("/FolderTest/", "..");
-
-            actual.Should().Be("/");
-        }
-
-        [Fact]
-        public void linking_sub_folder_from_root()
-        {
-
-
-            var sut = new UrlConverter("/intranet/");
-            var actual = sut.MapWikiPaths("/", "FolderTest");
-
-            actual.Should().Be("/FolderTest");
-        }
-
-
-        [Fact]
-        public void linking_sub_image_from_root_level()
-        {
-
-
-            var sut = new UrlConverter("/intranet/");
-            var actual = sut.MapWikiPaths("/", "NoDoc/image.png");
-
-            actual.Should().Be("/NoDoc/image.png");
-        }
-
-        [Fact]
-        public void linking_image_from_sibling_folder()
-        {
-
-
-            var sut = new UrlConverter("/intranet/");
-            var actual = sut.MapWikiPaths("/FolderTest", "../NoDoc/image.png");
-
-            actual.Should().Be("/NoDoc/image.png");
-        }
-
-
-        public void linking_image_from_same_lavel_should_make_it_an_absolute_path()
-        {
-            var sut = new UrlConverter("/intranet/");
-            var actual = sut.MapWikiPaths("withlink", "NoDoc/image.png");
+            actual.RealWikiPath.Should().Be("/");
         }
 
     }

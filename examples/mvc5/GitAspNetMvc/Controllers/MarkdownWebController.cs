@@ -1,10 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
+using System.Web.Routing;
+using GitAspNetMvc.Models;
 using MarkdownWeb;
 using MarkdownWeb.Git;
+using MarkdownWeb.Storage.Files;
 
 namespace GitAspNetMvc.Controllers
 {
@@ -20,6 +26,19 @@ namespace GitAspNetMvc.Controllers
     {
         public const string URL = "doc/";
         public const string DIRECTORY = "~/App_Data/Markdown/";
+        private string _folderPath;
+        private string _baseUrl;
+
+        public MarkdownWebController()
+        {
+            _folderPath = HostingEnvironment.MapPath(DIRECTORY);
+        }
+
+        protected override void Initialize(RequestContext requestContext)
+        {
+            base.Initialize(requestContext);
+            _baseUrl = Url.Content("~/" + URL);
+        }
 
         [Route(URL + "{*path}")]
         public ActionResult Index(string path)
@@ -27,25 +46,45 @@ namespace GitAspNetMvc.Controllers
             if (path == null)
                 path = "";
 
-            var folderPath = HostingEnvironment.MapPath(DIRECTORY);
-            var baseUrl = Url.Content("~/" + URL);
-
             if (Request.QueryString["image"] != null)
-                return ServeImages(Path.Combine(folderPath, "docs"));
+                return ServeImages(Path.Combine(_folderPath, "docs"));
 
-            var repository = LoadGitHubRepository(folderPath);
+            var repository = LoadGitHubRepository(_folderPath);
 
-            var urlConverter = new UrlConverter(baseUrl);
+            var urlConverter = new UrlConverter(_baseUrl, repository);
             var parser = new PageService(repository, urlConverter);
-            var result = parser.ParseUrl(baseUrl + path);
+            var result = parser.ParseUrl(_baseUrl + path);
             return View("Index", result);
         }
-        
+
         private ActionResult ServeImages(string folderPath)
         {
             var src = Request.QueryString["image"].TrimStart('/');
             var mime = MimeMapping.GetMimeMapping(Path.GetFileName(src));
             return File(Path.Combine(folderPath, src.Replace("/", "\\")), mime);
+        }
+
+        [Route(URL + "pages")]
+        public ActionResult Pages()
+        {
+            var repository = LoadGitHubRepository(_folderPath);
+            var urlConverter = new UrlConverter(_baseUrl, repository);
+            var pageService = new PageService(repository, urlConverter);
+            var result = pageService.GetPages();
+            PageTreeGenerator generator = new PageTreeGenerator();
+            var root = generator.Generate(result, URL);
+
+            return View(new PageListViewModel(root));
+        }
+
+        [Route(URL + "pages/missing")]
+        public ActionResult MissingPages()
+        {
+            var repository = LoadGitHubRepository(_folderPath);
+            var urlConverter = new UrlConverter(_baseUrl, repository);
+            var pageService = new PageService(repository, urlConverter);
+            var result = pageService.GetMissingPages();
+            return View(result);
         }
 
         private GitPageRepository LoadGitHubRepository(string folderPath)
@@ -57,7 +96,7 @@ namespace GitAspNetMvc.Controllers
 
                 //Folder in the git repos where the documentation is stored
                 DocumentationDirectory = Path.Combine(folderPath, "docs"),
-                RepositoryUri = new Uri("https://github.com/onetrueerror/OneTrueError.Documentation.git"),
+                RepositoryUri = new Uri("https://github.com/coderrio/coderr.Documentation.git"),
             };
 
             return new GitPageRepository(settings);

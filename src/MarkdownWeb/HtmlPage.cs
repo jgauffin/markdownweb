@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MarkdownWeb.MarkdownService.Extensions;
 
 namespace MarkdownWeb
 {
@@ -16,6 +17,12 @@ namespace MarkdownWeb
         /// </summary>
         public string Title { get; set; }
 
+        public string Abstract { get; set; }
+
+        public string[] Keywords { get; set; }
+
+        public IEnumerable<PageLink> Links { get; set; }
+
         /// <summary>
         ///     Generated HTML body.
         /// </summary>
@@ -24,7 +31,7 @@ namespace MarkdownWeb
         /// <summary>
         /// Path to the document (including "[pagename].md")
         /// </summary>
-        public string WikiPath { get; set; }
+        public PageReference WikiPageReference { get; set; }
 
         /// <summary>
         ///     Parts generated for the markdown page.

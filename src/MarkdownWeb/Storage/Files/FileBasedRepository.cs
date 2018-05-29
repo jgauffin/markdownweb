@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using MarkdownWeb.Helpers;
 
 namespace MarkdownWeb.Storage.Files
 {
@@ -13,7 +15,7 @@ namespace MarkdownWeb.Storage.Files
     ///         time a page is saved.
     ///     </para>
     /// </remarks>
-    public class FileBasedRepository : IPageRepository
+    public class FileBasedRepository : IPageRepository, IPageSource
     {
         private readonly string _rootFilePath;
 
@@ -36,18 +38,12 @@ namespace MarkdownWeb.Storage.Files
             if (fileName == null)
                 return null;
 
-            var body = File.ReadAllText(fileName, Encoding);
-            var pos = body.IndexOfAny(new[] {'\r', '\n'});
-            var title = pos != -1 ? body.Substring(0, pos).TrimStart('#', ' ', '\t') : "";
-
-
+            var fileContents = File.ReadAllText(fileName, Encoding);
             return new StoredPage
             {
-                Body = body,
-                Title = title,
-                Author = "Unknown",
+                Body = fileContents,
+                Name = fileName,
                 CreatedAtUtc = File.GetLastWriteTimeUtc(fileName),
-                Revision = 1
             };
         }
 
@@ -69,11 +65,37 @@ namespace MarkdownWeb.Storage.Files
                 new PageMetadata
                 {
                     CreatedAtUtc = page.CreatedAtUtc,
-                    Revision = 1,
-                    Author = page.Author,
                     ChangeComment = "No comment"
                 }
             };
+        }
+
+        public IEnumerable<string> GetAllPagesAsLinks()
+        {
+            var directory = _rootFilePath.EndsWith("/") ? _rootFilePath + "/" : _rootFilePath;
+            foreach (var file in ScanDirectory(directory, directory))
+            {
+                yield return file;
+            }
+        }
+
+        private IEnumerable<string> ScanDirectory(string rootDirectory, string directoryToScan)
+        {
+            var files = Directory.GetFiles(directoryToScan, "*.md");
+            foreach (var file in files)
+            {
+                var str = file.Remove(0, rootDirectory.Length).Replace('\\', '/');
+                yield return str.StartsWith("/") ? str : "/" + str;
+            }
+
+            var dirs = Directory.GetDirectories(directoryToScan);
+            foreach (var dir in dirs)
+            {
+                foreach (var file in ScanDirectory(rootDirectory, dir))
+                {
+                    yield return file;
+                }
+            }
         }
 
         public bool Exists(string wikiPath)
@@ -106,7 +128,10 @@ namespace MarkdownWeb.Storage.Files
             path = Path.Combine(_rootFilePath, path);
 
             if (wikiPath.Contains(".md"))
-                return path;
+            {
+                return File.Exists(path) ? path : null;
+            }
+
 
             if (File.Exists(path + "\\index.md"))
                 return path + "\\index.md";
@@ -115,6 +140,11 @@ namespace MarkdownWeb.Storage.Files
                 return path + ".md";
 
             return null;
+        }
+
+        public bool PageExists(PageReference page)
+        {
+            return Exists(page.RealWikiPath + "/" + page.Filename);
         }
     }
 }

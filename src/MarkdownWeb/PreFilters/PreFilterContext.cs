@@ -28,7 +28,7 @@ namespace MarkdownWeb.PreFilters
         /// <summary>
         ///     Path to the current markdown document
         /// </summary>
-        public string CurrentPagePath { get; set; }
+        public PageReference RequestedPage { get; set; }
 
         /// <summary>
         ///     Parse a markdown text
@@ -38,7 +38,7 @@ namespace MarkdownWeb.PreFilters
         public string Parse(string text)
         {
             if (text == null) throw new ArgumentNullException("text");
-            return _pageParser.Parse(CurrentPagePath, text);
+            return _pageParser.Parse(RequestedPage, text);
         }
     }
 }

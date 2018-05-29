@@ -7,21 +7,41 @@ namespace MarkdownWeb
     /// </summary>
     public class UrlConverter : IUrlPathConverter
     {
+        private readonly IPageSource _pageSource;
         private readonly string _rootAbsolutePath;
 
-        public UrlConverter(string rootAbsolutePath)
+        public UrlConverter(IPageSource pageSource)
         {
-            if (rootAbsolutePath == null) throw new ArgumentNullException("rootAbsolutePath");
-            _rootAbsolutePath = rootAbsolutePath;
+            _pageSource = pageSource ?? throw new ArgumentNullException(nameof(pageSource));
+        }
+
+        public UrlConverter(string rootAbsolutePath, IPageSource pageSource)
+        {
+            _rootAbsolutePath = rootAbsolutePath ?? throw new ArgumentNullException(nameof(rootAbsolutePath));
+            _pageSource = pageSource ?? throw new ArgumentNullException(nameof(pageSource));
+
             if (!_rootAbsolutePath.EndsWith("/"))
                 _rootAbsolutePath += "/";
             if (!_rootAbsolutePath.StartsWith("/"))
                 _rootAbsolutePath = "/" + _rootAbsolutePath;
         }
 
-        public string ToWebPath(string wikiPath)
+        public string RemoveWebRoot(string url)
         {
-            if (wikiPath == null) throw new ArgumentNullException("wikiPath");
+            if (url == null) throw new ArgumentNullException(nameof(url));
+
+            if (!url.StartsWith("/"))
+                url = $"/{url}";
+
+            if (!url.StartsWith(_rootAbsolutePath))
+                throw new ArgumentException("Url do not start with the web root: " + url);
+
+            return "/" + url.Remove(0, _rootAbsolutePath.Length);
+        }
+
+        public string ToWebUrl(string wikiPath)
+        {
+            if (wikiPath == null) throw new ArgumentNullException(nameof(wikiPath));
             if (wikiPath.StartsWith("/"))
                 wikiPath = wikiPath.Substring(1);
 
@@ -33,48 +53,47 @@ namespace MarkdownWeb
             throw new NotImplementedException();
         }
 
-        public string MapUrlToWikiPath(string websiteAbsolutePath)
+        public PageReference MapUrlToWikiPath(string websiteAbsolutePath)
         {
-            if (!websiteAbsolutePath.StartsWith(("/")))
-                websiteAbsolutePath = "/" + websiteAbsolutePath;
-            if (!websiteAbsolutePath.StartsWith(_rootAbsolutePath))
+            if (websiteAbsolutePath == null) throw new ArgumentNullException(nameof(websiteAbsolutePath));
+
+            if (!websiteAbsolutePath.StartsWith("/"))
+                websiteAbsolutePath = $"/{websiteAbsolutePath}";
+            if (!websiteAbsolutePath.TrimEnd('/').StartsWith(_rootAbsolutePath.TrimEnd('/')))
                 throw new InvalidOperationException("That is not a wiki path: " + websiteAbsolutePath);
 
-            //-1 to preserve the last slash
-            return websiteAbsolutePath.Remove(0, _rootAbsolutePath.Length - 1);
+            var givenWikiPath = websiteAbsolutePath.TrimEnd('/') == _rootAbsolutePath.TrimEnd('/')
+                ? "/"
+                : websiteAbsolutePath.Remove(0, _rootAbsolutePath.Length - 1);
+            var path = givenWikiPath.TrimEnd('/');
+            if (path == "" || path == "/")
+            {
+                return new PageReference("/", "/", "index.md");
+            }
 
-        }
+            // try get document
+            var pos = path.LastIndexOf('/');
+            var document = path.Substring(pos + 1);
+            path = path.Substring(0, pos + 1);
 
-        public string ToWikiPath(string currentWikiPath, string websiteAbsolutePath)
-        {
-            if (websiteAbsolutePath == null) throw new ArgumentNullException("websiteAbsolutePath");
-            if (!websiteAbsolutePath.StartsWith("/"))
-                websiteAbsolutePath = "/" + websiteAbsolutePath;
+            // /some/path.md --> /some/path.md
+            if (document.Contains("."))
+            {
+                var givenDocument = new PageReference(givenWikiPath, path, document);
+                return _pageSource.PageExists(givenDocument) ? givenDocument : null;
+            }
 
-            if (!websiteAbsolutePath.StartsWith(_rootAbsolutePath))
-                throw new InvalidOperationException(
-                    "Path doesn't start with the root path. It cannot be a wiki page: " + websiteAbsolutePath);
+            // /some/path/  --> /some/path.md
+            var reference = new PageReference(givenWikiPath, path, document + ".md");
+            if (_pageSource.PageExists(reference))
+                return reference;
 
-            return websiteAbsolutePath.Remove(0, _rootAbsolutePath.Length);
-        }
+            // /some/path --> /some/path/index.md
+            reference = new PageReference(givenWikiPath, path + document, "index.md");
+            if (_pageSource.PageExists(reference))
+                return reference;
 
-        public string MapWikiPaths(string currentWikiPath, string linkedWikiPath)
-        {
-            if (!currentWikiPath.StartsWith("/"))
-                throw new InvalidOperationException("Current page path must be absolute.");
-
-            if (linkedWikiPath.StartsWith("/"))
-                return ToWebPath(linkedWikiPath);
-
-            var uri = new Uri(new Uri("http://localhost" + currentWikiPath), linkedWikiPath);
-            var path = uri.AbsolutePath;
-            return path;
-        }
-
-
-        public string ToWebPath(string currentWikiPath, string linkedPath)
-        {
-            throw new NotImplementedException();
+            return null;
         }
     }
 }
