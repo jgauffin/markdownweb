@@ -52,9 +52,9 @@ namespace MarkdownWeb.Tests
             actual.Body.Should()
                 .Contain("/intranet/FolderTest", "because links are clickable and not wiki relative in the HTML pages.");
             actual.Body.Should()
-                .Contain("/intranet/FolderTest/other.md", "because path links to other folders should be supported");
+                .Contain("/intranet/FolderTest/other/", "because path links to other folders should be supported");
             actual.Body.Should()
-                .Contain("/intranet/page.md", "because links on same level should also work.");
+                .Contain("/intranet/page/", "because links on same level should also work.");
         }
 
         [Fact]
@@ -255,7 +255,7 @@ System         | Alias            | Nod 1            | Nod 2
             var sut = new PageService(repository, pathConverter);
             var actual = sut.ParseUrl("/intranet/FolderTest/index.md");
 
-            actual.Body.Should().Contain(@"/FolderTest/subfolder/twodoc.md");
+            actual.Body.Should().Contain(@"/FolderTest/subfolder/twodoc/");
         }
 
         [Fact]
@@ -273,10 +273,24 @@ System         | Alias            | Nod 1            | Nod 2
         }
 
         [Fact]
-        public void Should_mark_missing_links_as_missing()
+        public void Should_work_with_index_pages()
         {
             var pageSource = Substitute.For<IPageSource>();
             pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseUrl("/intranet/foldertest/");
+
+            
+        }
+
+
+        [Fact]
+        public void Should_mark_missing_links_as_missing()
+        {
+            var pageSource = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
             var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
@@ -327,16 +341,15 @@ for (int i = 0; i < 10; ++i)
         [Fact]
         public void ListMissingPages()
         {
-            var pageSource = Substitute.For<IPageSource>();
-            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pageSource = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
             var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
             var sut = new PageService(repository, pathConverter);
             var actual = sut.GetMissingPages();
 
-            actual[0].Url.Should().Be("/intranet/someMissingPage");
-            actual[0].References[0].Should().Be("/page.md");
+            actual[0].Url.Should().Be("/intranet/some/missing");
+            actual[0].References[0].Should().Be("/index.md");
         }
     }
 }

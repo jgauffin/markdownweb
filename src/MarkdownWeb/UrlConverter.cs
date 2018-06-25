@@ -59,7 +59,7 @@ namespace MarkdownWeb
 
             if (!websiteAbsolutePath.StartsWith("/"))
                 websiteAbsolutePath = $"/{websiteAbsolutePath}";
-            if (!websiteAbsolutePath.TrimEnd('/').StartsWith(_rootAbsolutePath.TrimEnd('/')))
+            if (!websiteAbsolutePath.TrimEnd('/').StartsWith(_rootAbsolutePath.TrimEnd('/'), StringComparison.OrdinalIgnoreCase))
                 throw new InvalidOperationException("That is not a wiki path: " + websiteAbsolutePath);
 
             var givenWikiPath = websiteAbsolutePath.TrimEnd('/') == _rootAbsolutePath.TrimEnd('/')
@@ -71,27 +71,35 @@ namespace MarkdownWeb
                 return new PageReference("/", "/", "index.md");
             }
 
+            return ToReference(givenWikiPath);
+        }
+
+        public PageReference ToReference(string givenWikiPath)
+        {
+            var wikiPath = givenWikiPath.TrimEnd('/');
+
             // try get document
-            var pos = path.LastIndexOf('/');
-            var document = path.Substring(pos + 1);
-            path = path.Substring(0, pos + 1);
+            var pos = wikiPath.LastIndexOf('/');
+            var document = wikiPath.Substring(pos + 1);
+            wikiPath = wikiPath.Substring(0, pos + 1);
 
             // /some/path.md --> /some/path.md
             if (document.Contains("."))
             {
-                var givenDocument = new PageReference(givenWikiPath, path, document);
+                var givenDocument = new PageReference(givenWikiPath, wikiPath, document);
                 return _pageSource.PageExists(givenDocument) ? givenDocument : null;
             }
 
             // /some/path/  --> /some/path.md
-            var reference = new PageReference(givenWikiPath, path, document + ".md");
+            var reference = new PageReference(givenWikiPath, wikiPath, document + ".md");
             if (_pageSource.PageExists(reference))
                 return reference;
 
             // /some/path --> /some/path/index.md
-            reference = new PageReference(givenWikiPath, path + document, "index.md");
+            reference = new PageReference(givenWikiPath, wikiPath + document, "index.md");
             if (_pageSource.PageExists(reference))
                 return reference;
+
 
             return null;
         }

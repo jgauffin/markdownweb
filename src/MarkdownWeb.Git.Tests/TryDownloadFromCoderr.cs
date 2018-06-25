@@ -27,6 +27,7 @@ namespace MarkdownWeb.Git.Tests
         public void Should_be_able_to_download_once()
         {
             var waiter = new ManualResetEvent(false);
+            var pageReference = new PageReference("/", "/", "index.md");
             var settings = new GitStorageConfiguration
             {
                 FetchDirectory = _path,
@@ -37,7 +38,7 @@ namespace MarkdownWeb.Git.Tests
             using (var git = new GitPageRepository(settings))
             {
                 git.DownloadCompleted = () => waiter.Set();
-                git.Exists("/");
+                git.Exists(pageReference);
                 waiter.WaitOne(5000).Should().BeTrue();
             }
 
@@ -47,6 +48,7 @@ namespace MarkdownWeb.Git.Tests
         public void Should_be_able_To_download_another_time_without_getting_sync_errors()
         {
             var waiter = new ManualResetEvent(false);
+            var pageReference = new PageReference("/", "/", "index.md");
             var settings = new GitStorageConfiguration
             {
                 FetchDirectory = _path,
@@ -59,10 +61,10 @@ namespace MarkdownWeb.Git.Tests
             {
                 git.ErrorLogTask = (level, s, exception) => Console.WriteLine(exception);
                 git.DownloadCompleted = () => waiter.Set();
-                git.Exists("/");
+                git.Exists(pageReference);
                 waiter.WaitOne(5000).Should().BeTrue();
                 waiter.Reset();
-                git.Exists("/");
+                git.Exists(pageReference);
                 waiter.WaitOne(5000).Should().BeTrue();
             }
 

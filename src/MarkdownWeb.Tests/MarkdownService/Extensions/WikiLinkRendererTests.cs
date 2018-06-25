@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Markdig;
 using MarkdownWeb.MarkdownService;
 using MarkdownWeb.MarkdownService.Extensions;
 using MarkdownWeb.Storage;
+using MarkdownWeb.Storage.Files;
 using NSubstitute;
 using Xunit;
 
@@ -11,6 +13,13 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
 {
     public class WikiLinkRendererTests
     {
+        private FileBasedRepository _repository;
+
+        public WikiLinkRendererTests()
+        {
+            _repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+        }
+
         [Fact]
         public void ignore_bbcode_or_language_tags_for_syntax_highlighting()
         {
@@ -119,7 +128,7 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
                 UrlPathConverter = new UrlConverter("/documentation/", pageSource),
             };
             pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
-            repos.Exists(Arg.Any<string>()).Returns(true);
+            repos.Exists(Arg.Any<PageReference>()).Returns(true);
 
             var builder = new MarkdownPipelineBuilder();
             builder.UseAdvancedExtensions();
@@ -127,7 +136,7 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
             var pipeline = builder.Build();
             var actual = Markdown.ToHtml(text, pipeline);
 
-            actual.Should().Contain(@" <a href=""/documentation/client/libraries/image"">majs</a> ");
+            actual.Should().Contain(@" <a href=""/documentation/client/libraries/image/"">majs</a> ");
         }
 
         [Fact]
@@ -142,7 +151,7 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
                 RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/", "aspnet.md"),
                 UrlPathConverter = new UrlConverter("/documentation/", pageSource),
             };
-            repos.Exists(Arg.Any<string>()).Returns(true);
+            repos.Exists(Arg.Any<PageReference>()).Returns(true);
             pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
 
             var builder = new MarkdownPipelineBuilder();
@@ -151,22 +160,20 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
             var pipeline = builder.Build();
             var actual = Markdown.ToHtml(text, pipeline);
 
-            actual.Should().Contain(@" <a href=""/documentation/client/image"">majs</a> ");
+            actual.Should().Contain(@" <a href=""/documentation/client/image/"">majs</a> ");
         }
 
         [Fact]
         public void show_work_for_missing_wiki_links()
         {
-            var pageSource = Substitute.For<IPageSource>();
             var links = new List<PageLink>();
             var text = "some text [majs](../page) flflf";
             var context = new MarkdownParserContext(Substitute.For<IPageRepository>(), links)
             {
                 RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/", "index.md"),
-                UrlPathConverter = new UrlConverter("/documentation/", pageSource),
+                UrlPathConverter = new UrlConverter("/documentation/", _repository),
                 
             };
-            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
 
             var builder = new MarkdownPipelineBuilder();
             builder.UseAdvancedExtensions();
@@ -180,16 +187,14 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
         [Fact]
         public void show_work_for_missing_wiki_links_that_have_a_page_name()
         {
-            var pageSource = Substitute.For<IPageSource>();
             var links = new List<PageLink>();
             var text = "some text [majs](anotherpage.md) flflf";
             var context = new MarkdownParserContext(Substitute.For<IPageRepository>(), links)
             {
                 RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/", "index.md"),
-                UrlPathConverter = new UrlConverter("/documentation/", pageSource),
+                UrlPathConverter = new UrlConverter("/documentation/", _repository),
                 
             };
-            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
 
             var builder = new MarkdownPipelineBuilder();
             builder.UseAdvancedExtensions();

@@ -10,23 +10,23 @@ namespace MarkdownWeb.Storage
         /// <summary>
         ///     Get page.
         /// </summary>
-        /// <param name="wikiPagePath">Relative to the wiki root.</param>
+        /// <param name="pageReference">Relative to the wiki root.</param>
         /// <returns>Page if found; otherwise <c>null</c>.</returns>
-        StoredPage Get(string wikiPagePath);
+        StoredPage Get(PageReference pageReference);
 
         /// <summary>
         /// </summary>
-        /// <param name="wikiPagePath">Relative to the wiki root</param>
+        /// <param name="pageReference">Relative to the wiki root</param>
         /// <param name="revision"></param>
         /// <returns>Page if found; otherwise <c>null</c>.</returns>
-        StoredPage Get(string wikiPagePath, int revision);
+        StoredPage Get(PageReference pageReference, int revision);
 
         /// <summary>
         ///     Get all saved revisions of this document
         /// </summary>
-        /// <param name="wikiPagePath">Relative to the wiki root</param>
+        /// <param name="pageReference">Relative to the wiki root</param>
         /// <returns>Metadata if page was found; otherwise <c>null</c>.</returns>
-        PageMetadata[] GetRevisions(string wikiPagePath);
+        PageMetadata[] GetRevisions(PageReference pageReference);
 
         /// <summary>
         /// List all pages (as links from root)
@@ -37,9 +37,9 @@ namespace MarkdownWeb.Storage
         /// <summary>
         ///     Check if page exists
         /// </summary>
-        /// <param name="wikiPagePath">Relative to the wiki root</param>
+        /// <param name="pageUrl">Relative to the wiki root</param>
         /// <returns><c>true</c> if found; otherwise false</returns>
-        bool Exists(string wikiPagePath);
+        bool Exists(PageReference pageUrl);
 
         /// <summary>
         ///     Have created a new page.

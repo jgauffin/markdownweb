@@ -40,5 +40,7 @@
         /// <param name="websiteAbsolutePath">Path in the web site</param>
         /// <returns>Path for the wiki document.</returns>
         PageReference MapUrlToWikiPath(string websiteAbsolutePath);
+
+        PageReference ToReference(string wikiPath);
     }
 }

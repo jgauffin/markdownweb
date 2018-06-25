@@ -16,17 +16,16 @@ namespace MarkdownWeb.Tests.Tree
         [Fact]
         public void ListAllPages()
         {
-            var pageSource = Substitute.For<IPageSource>();
-            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
-            var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+            var pageSource = repository;
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
             var service = new PageService(repository, pathConverter);
             var pages = service.GetPages();
 
             var sut = new PageTreeGenerator();
             var root = sut.Generate(pages, "/intranet/");
 
-            root.Children[0].PageReference.Should().Be("/");
+            root.Children[0].PageReference.ToString().Should().Be("/page.md");
         }
 
         [Fact]

@@ -15,20 +15,25 @@ namespace MarkdownWeb.MarkdownService.Extensions
             var link = context.Link;
             var renderer = context.HtmlRenderer;
 
-            link.Url = context.ParserContext.RequestedPage.MapReferencedDocument(link.Url);
-            bool pageIsMissing = !context.ParserContext.PageExists(link.Url);
+            var wikiPath = context.ParserContext.RequestedPage.MapReferencedDocument(link.Url);
+            var pageReference = context.ParserContext.UrlPathConverter.ToReference(wikiPath);
+            bool pageIsMissing = pageReference == null;
 
             if (renderer.EnableHtmlForInline)
             {
                 renderer.Write(link.IsImage ? "<img src=\"" : "<a href=\"");
 
-                if (link.IsImage)
+                if (pageIsMissing)
                 {
-                    link.Url = context.ParserContext.UrlPathConverter.ToWebUrl("/") + "?image=" + link.Url;
+                    link.Url = context.ParserContext.UrlPathConverter.ToWebUrl(wikiPath);
+                }
+                else if (link.IsImage)
+                {
+                    link.Url = context.ParserContext.UrlPathConverter.ToWebUrl("/") + "?image=" + pageReference;
                 }
                 else
                 {
-                    link.Url = context.ParserContext.UrlPathConverter.ToWebUrl(link.Url);
+                    link.Url = context.ParserContext.UrlPathConverter.ToWebUrl(pageReference.ToWikiPath());
                 }
 
                 renderer.WriteEscapeUrl(link.GetDynamicUrl != null ? link.GetDynamicUrl() ?? link.Url : link.Url);

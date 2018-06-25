@@ -24,7 +24,7 @@ namespace MarkdownWeb.Git.Tests
         public void Should_merge_if_not_exist()
         {
             var repos = new GitPageRepository(_config) {UpdateInBackground = false};
-            repos.Get("/");
+            repos.Get(new PageReference("/", "/", "index.md"));
         }
     }
 }

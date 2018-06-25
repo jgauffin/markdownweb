@@ -77,7 +77,7 @@ namespace MarkdownWeb
             var wikiPagePath = _urlPathConverter.MapUrlToWikiPath(url);
             var page = wikiPagePath == null
                 ? null
-                : _repository.Get(wikiPagePath.ToString());
+                : _repository.Get(wikiPagePath);
 
             if (page != null)
                 return Parse(wikiPagePath, page.Body);
@@ -90,7 +90,6 @@ namespace MarkdownWeb
             if (pages.Any())
             {
                 var body = new StringBuilder();
-                body.AppendLine("<h1>Page list</h1>");
                 body.AppendLine("<ul class=\"pagelist\">");
                 foreach (var subPage in pages)
                 {
@@ -111,10 +110,10 @@ namespace MarkdownWeb
             {
                 
                 Body =
-                    $@"<h1>Missing page</h1>
-                    <p>The page specified is missing: {url}</p>
-                    <p>Try our page list to find the correct page: <a href=""{pagesUrl}"">Page list</a>",
+                    $@"<p>The page specified is missing: {url}</p>
+                    <p>Visit our <a href=""{pagesUrl}"">page list</a> to find the correct page.",
                 Title = "Missing page",
+                
                 WikiPageReference = wikiPagePath
             };
 
@@ -129,7 +128,7 @@ namespace MarkdownWeb
             {
                 var webUrl = _urlPathConverter.ToWebUrl(pageLink);
                 var reference = _urlPathConverter.MapUrlToWikiPath(webUrl);
-                var page = _repository.Get(pageLink);
+                var page = _repository.Get(reference);
                 if (string.IsNullOrEmpty(page.Body))
                     continue;
 
@@ -157,7 +156,7 @@ namespace MarkdownWeb
             {
                 var url = _urlPathConverter.ToWebUrl(pageLink);
                 var reference = _urlPathConverter.MapUrlToWikiPath(url);
-                var page = _repository.Get(pageLink);
+                var page = _repository.Get(reference);
                 var parsedPage = Parse(reference, page.Body);
 
                 foreach (var link in parsedPage.Links)

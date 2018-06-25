@@ -15,8 +15,8 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
-    <PackageReleaseNotes>Added a page tree and listing pages for empty folders</PackageReleaseNotes>
-    <version>1.3.6</version>
+    <PackageReleaseNotes>Bug fixes in path handling</PackageReleaseNotes>
+    <version>1.3.7</version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Markdig" version="0.15.0" />

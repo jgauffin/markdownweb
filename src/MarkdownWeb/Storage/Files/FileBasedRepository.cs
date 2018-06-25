@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using MarkdownWeb.Helpers;
 
 namespace MarkdownWeb.Storage.Files
 {
@@ -31,10 +30,10 @@ namespace MarkdownWeb.Storage.Files
 
         public Encoding Encoding { get; set; }
 
-        public StoredPage Get(string wikiPagePath)
+        public StoredPage Get(PageReference pageUrl)
         {
-            if (wikiPagePath == null) throw new ArgumentNullException("wikiPagePath");
-            var fileName = GetFilePath(wikiPagePath);
+            if (pageUrl == null) throw new ArgumentNullException("pageUrl");
+            var fileName = GetFilePath(pageUrl);
             if (fileName == null)
                 return null;
 
@@ -43,20 +42,20 @@ namespace MarkdownWeb.Storage.Files
             {
                 Body = fileContents,
                 Name = fileName,
-                CreatedAtUtc = File.GetLastWriteTimeUtc(fileName),
+                CreatedAtUtc = File.GetLastWriteTimeUtc(fileName)
             };
         }
 
-        public StoredPage Get(string wikiPagePath, int revision)
+        public StoredPage Get(PageReference pageUrl, int revision)
         {
-            if (wikiPagePath == null) throw new ArgumentNullException("wikiPagePath");
-            return Get(wikiPagePath);
+            if (pageUrl == null) throw new ArgumentNullException("pageUrl");
+            return Get(pageUrl);
         }
 
-        public PageMetadata[] GetRevisions(string wikiPagePath)
+        public PageMetadata[] GetRevisions(PageReference pageReference)
         {
-            if (wikiPagePath == null) throw new ArgumentNullException("wikiPagePath");
-            var page = Get(wikiPagePath);
+            if (pageReference == null) throw new ArgumentNullException("pageReference");
+            var page = Get(pageReference);
             if (page == null)
                 return null;
 
@@ -73,35 +72,13 @@ namespace MarkdownWeb.Storage.Files
         public IEnumerable<string> GetAllPagesAsLinks()
         {
             var directory = _rootFilePath.EndsWith("/") ? _rootFilePath + "/" : _rootFilePath;
-            foreach (var file in ScanDirectory(directory, directory))
-            {
-                yield return file;
-            }
+            foreach (var file in ScanDirectory(directory, directory)) yield return file;
         }
 
-        private IEnumerable<string> ScanDirectory(string rootDirectory, string directoryToScan)
+        public bool Exists(PageReference page)
         {
-            var files = Directory.GetFiles(directoryToScan, "*.md");
-            foreach (var file in files)
-            {
-                var str = file.Remove(0, rootDirectory.Length).Replace('\\', '/');
-                yield return str.StartsWith("/") ? str : "/" + str;
-            }
-
-            var dirs = Directory.GetDirectories(directoryToScan);
-            foreach (var dir in dirs)
-            {
-                foreach (var file in ScanDirectory(rootDirectory, dir))
-                {
-                    yield return file;
-                }
-            }
-        }
-
-        public bool Exists(string wikiPath)
-        {
-            if (wikiPath == null) throw new ArgumentNullException("wikiPath");
-            return GetFilePath(wikiPath) != null;
+            if (page == null) throw new ArgumentNullException(nameof(page));
+            return GetFilePath(page) != null;
         }
 
         public void Create(string wikiPagePath, EditedPage page)
@@ -122,29 +99,32 @@ namespace MarkdownWeb.Storage.Files
             File.WriteAllText(filePath, page.Body, Encoding);
         }
 
-        private string GetFilePath(string wikiPath)
-        {
-            var path = wikiPath.Trim('/');
-            path = Path.Combine(_rootFilePath, path);
-
-            if (wikiPath.Contains(".md"))
-            {
-                return File.Exists(path) ? path : null;
-            }
-
-
-            if (File.Exists(path + "\\index.md"))
-                return path + "\\index.md";
-
-            if (File.Exists(path + ".md"))
-                return path + ".md";
-
-            return null;
-        }
-
         public bool PageExists(PageReference page)
         {
-            return Exists(page.RealWikiPath + "/" + page.Filename);
+            return Exists(page);
+        }
+
+        private string GetFilePath(PageReference page)
+        {
+            var path = page.RealWikiPath.Trim('/');
+            path = Path.Combine(_rootFilePath, path, page.Filename);
+            return File.Exists(path) ? path : null;
+        }
+
+        private IEnumerable<string> ScanDirectory(string rootDirectory, string directoryToScan)
+        {
+            var files = Directory.GetFiles(directoryToScan, "*.md");
+            foreach (var file in files)
+            {
+                var str = file.Remove(0, rootDirectory.Length).Replace('\\', '/');
+                yield return str.StartsWith("/") ? str : "/" + str;
+            }
+
+            var dirs = Directory.GetDirectories(directoryToScan);
+            foreach (var dir in dirs)
+            {
+                foreach (var file in ScanDirectory(rootDirectory, dir)) yield return file;
+            }
         }
     }
 }

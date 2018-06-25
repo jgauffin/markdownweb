@@ -18,8 +18,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageReleaseNotes>Bumped dependency versions.</PackageReleaseNotes>
-    <Version>1.0.6</Version>
+    <PackageReleaseNotes>Concurrency issue when fetching code.</PackageReleaseNotes>
+    <Version>1.0.7</Version>
   </PropertyGroup>
 
   <Target Name="PostBuild" BeforeTargets="PostBuildEvent" Condition="'$(TargetFramework)' == 'net451'">

@@ -35,13 +35,16 @@ namespace MarkdownWeb.MarkdownService
         public void AddLink(PageLink pageLink)
         {
             if (pageLink == null) throw new ArgumentNullException(nameof(pageLink));
+
             _links.Add(pageLink);
         }
 
-        public bool PageExists(string wikiPageUrl)
+        public bool PageExists(PageReference pageReference)
         {
+            if (pageReference == null) throw new ArgumentNullException(nameof(pageReference));
+
             if (_repository != null)
-                return _repository.Exists(wikiPageUrl);
+                return _repository.Exists(pageReference);
 
             return false;
         }

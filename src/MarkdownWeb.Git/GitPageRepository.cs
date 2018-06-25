@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using LibGit2Sharp;
 using MarkdownWeb.Storage;
@@ -17,7 +18,7 @@ namespace MarkdownWeb.Git
         private readonly FileBasedRepository _fileBasedRepository;
         private readonly Repository _repos;
         private readonly object _syncLock = new object();
-
+        private int _isRunning = 0;
 
         /// <summary>
         /// Creates a new instance of <see cref="GitPageRepository"/>.
@@ -85,24 +86,24 @@ namespace MarkdownWeb.Git
         }
 
         /// <inheritdoc />
-        public StoredPage Get(string wikiPagePath)
+        public StoredPage Get(PageReference pageReference)
         {
             EnsureCache();
-            return _fileBasedRepository.Get(wikiPagePath);
+            return _fileBasedRepository.Get(pageReference);
         }
 
         /// <inheritdoc />
-        public StoredPage Get(string wikiPagePath, int revision)
+        public StoredPage Get(PageReference pageReference, int revision)
         {
             EnsureCache();
-            return _fileBasedRepository.Get(wikiPagePath);
+            return _fileBasedRepository.Get(pageReference);
         }
 
         /// <inheritdoc />
-        public PageMetadata[] GetRevisions(string wikiPagePath)
+        public PageMetadata[] GetRevisions(PageReference pageReference)
         {
             EnsureCache();
-            return _fileBasedRepository.GetRevisions(wikiPagePath);
+            return _fileBasedRepository.GetRevisions(pageReference);
         }
 
         public IEnumerable<string> GetAllPagesAsLinks()
@@ -112,10 +113,10 @@ namespace MarkdownWeb.Git
         }
 
         /// <inheritdoc />
-        public bool Exists(string wikiPagePath)
+        public bool Exists(PageReference pageReference)
         {
             EnsureCache();
-            return _fileBasedRepository.Exists(wikiPagePath);
+            return _fileBasedRepository.Exists(pageReference);
         }
 
         /// <inheritdoc />
@@ -135,6 +136,9 @@ namespace MarkdownWeb.Git
         /// </summary>
         private void EnsureCache()
         {
+            if (Interlocked.CompareExchange(ref _isRunning, 1, 0) != 0)
+                return;
+
             lock (_syncLock)
             {
                 var cacheFile = CacheFile;
@@ -144,7 +148,8 @@ namespace MarkdownWeb.Git
 
                 //do it in the background
                 if (UpdateInBackground)
-                    Task.Run(() => { SyncRepository(cacheFile, true); }).ContinueWith(x=>ErrorLogTask?.Invoke(LogLevel.Debug, "Pull completed", null));
+                    Task.Run(() => { SyncRepository(cacheFile, true); }
+                    ).ContinueWith(x => ErrorLogTask?.Invoke(LogLevel.Debug, "Pull completed", null));
                 else
                     SyncRepository(cacheFile, true);
             }
@@ -156,7 +161,7 @@ namespace MarkdownWeb.Git
             {
                 ErrorLogTask?.Invoke(LogLevel.Info, "Attempting to pull form origin " + _config.RepositoryUri, null);
                 var user = new Signature("markdownweb", "info@markdownweb.com", DateTimeOffset.UtcNow);
-                var options = new PullOptions { MergeOptions = new MergeOptions { CommitOnSuccess = true } };
+                var options = new PullOptions {MergeOptions = new MergeOptions {CommitOnSuccess = true}};
                 Commands.Pull(_repos, user, options);
                 //var originMaster=_repos.Branches["origin/master"];
                 //_repos.Merge(originMaster, user, new MergeOptions(){CommitOnSuccess = true})
@@ -176,11 +181,15 @@ namespace MarkdownWeb.Git
                     ErrorLogTask?.Invoke(LogLevel.Error, "Failed to pull from origin.", ex);
                 }
             }
+            finally
+            {
+                Interlocked.Exchange(ref _isRunning, 0);
+            }
         }
 
         public bool PageExists(PageReference page)
         {
-            return Exists(page.RealWikiPath + page.Filename);
+            return Exists(page);
         }
     }
 }
