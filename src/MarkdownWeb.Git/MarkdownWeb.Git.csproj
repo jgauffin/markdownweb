@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <Authors>Jonas Gauffin</Authors>
     <PackageLicenseUrl>https://opensource.org/licenses/apache-2.0</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/jgauffin/markdownweb</PackageProjectUrl>
     <Description>Download wiki pages from a git repository (will also fetch updates automatically)</Description>
-    <Copyright>© jgauffin 2017</Copyright>
+    <Copyright>© jgauffin 2019</Copyright>
     <PackageTags>sequence-diagrams markdown html wiki git</PackageTags>
     <Product>MarkdownWeb ($(TargetFramework))</Product>
     <IncludeSymbols>true</IncludeSymbols>
@@ -18,18 +18,17 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageReleaseNotes>Pulling will now overwrite files.</PackageReleaseNotes>
-    <Version>1.0.8</Version>
+    <PackageReleaseNotes>Updated base package dependency.</PackageReleaseNotes>
+    <Version>1.0.9</Version>
   </PropertyGroup>
 
-  <Target Name="PostBuild" BeforeTargets="PostBuildEvent" Condition="'$(TargetFramework)' == 'net451'">
+  <Target Name="PostBuild" BeforeTargets="PostBuildEvent">
     <Exec Command="copy /y $(TargetPath) $(SolutionDir)..\examples\mvc5\lib" />
   </Target>
 
   <ItemGroup>
-    <PackageReference Include="LibGit2Sharp" Version="0.25.0" />
-    <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="1.0.210" />
-    <PackageReference Include="netstandard.library" Version="2.0.0" />
+    <PackageReference Include="LibGit2Sharp" Version="0.26.0" />
+    <PackageReference Include="LibGit2Sharp.NativeBinaries" Version="2.0.267" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MarkdownWeb\MarkdownWeb.csproj" />

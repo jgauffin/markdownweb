@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using CsQuery;
+using AngleSharp.Html.Parser;
 
 namespace MarkdownWeb.PostFilters
 {
@@ -31,18 +31,21 @@ namespace MarkdownWeb.PostFilters
             var toc = new StringBuilder();
             toc.AppendLine(@"<div class=""toc"">");
             toc.AppendLine("<ul>");
-            var doc = new CQ(context.HtmlToParse);
-            doc["h1,h2,h3,h4,h5,h6"].Each(el =>
+
+            var p = new HtmlParser();
+            var doc2 = p.ParseDocument(context.HtmlToParse);
+            var headings = doc2.QuerySelectorAll("h1,h2,h3,h4,h5,h6");
+            foreach (var el in headings)
             {
                 var myDepth = int.Parse(el.NodeName.Substring(1, 1));
                 if (!string.IsNullOrEmpty(el.Id))
-                    toc.AppendFormat("<li class=\"heading{2}\"><a href=\"#{0}\">{1}</a></li>\r\n", el.Id, el.InnerText,
+                    toc.AppendFormat("<li class=\"heading{2}\"><a href=\"#{0}\">{1}</a></li>\r\n", el.Id, el.TextContent.Trim(),
                         myDepth);
-            });
+            }
+
             toc.AppendLine("</ul>");
             toc.AppendLine("</div>");
             context.AddPart("TableOfContents", toc.ToString());
-
 
             return context.HtmlToParse;
         }

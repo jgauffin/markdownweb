@@ -6,9 +6,13 @@ to link between different pages. It also supports editing of pages using a Markd
 If you implement your repository you can also store page revisions (to get a complete wiki functionality).
 
 
-This is the generator behind the [SharpMessaging](http://sharpmessaging.net/doc) and [Griffin Framework](http://griffinframework.net/doc) homepages.
+[Live demo](http://coderr.io/doc) which is generated from [this documentation repository](https://github.com/coderrio/coderr.documentation).
 
-# Support
+## Screenshot
+
+![](docs/screenshot.png)
+
+# Features
 
 * All basic markdown formatters.
 * Fenced codeblocks (with language specified as in Github pages)

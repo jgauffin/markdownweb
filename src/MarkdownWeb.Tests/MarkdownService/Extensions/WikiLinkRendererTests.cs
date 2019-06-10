@@ -8,6 +8,7 @@ using MarkdownWeb.Storage;
 using MarkdownWeb.Storage.Files;
 using NSubstitute;
 using Xunit;
+using MarkdownParserContext = MarkdownWeb.MarkdownService.MarkdownParserContext;
 
 namespace MarkdownWeb.Tests.MarkdownService.Extensions
 {
