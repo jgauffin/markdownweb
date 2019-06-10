@@ -26,6 +26,10 @@ namespace AspNetExample.Controllers
         public MarkdownWebController()
         {
             _folderPath = HostingEnvironment.MapPath(DIRECTORY);
+        }
+
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
             _baseUrl = Url.Content("~/" + URL);
         }
 
@@ -35,17 +39,17 @@ namespace AspNetExample.Controllers
             if (path == null)
                 path = "";
 
-           
-
             if (Request.QueryString["image"] != null)
                 return ServeImages(_folderPath);
 
+
             var repository = new FileBasedRepository(_folderPath);
-            var exists = repository.Exists(path);
+            var urlConverter = new UrlConverter(_baseUrl, repository);
+            var reference = urlConverter.ToReference(path);
+            var exists = repository.Exists(reference);
             if (Request.QueryString["editor"] != null || !exists)
                 return HandlePageEdits(path, exists, repository, _baseUrl);
 
-            var urlConverter = new UrlConverter(_baseUrl, repository);
             var pageService = new PageService(repository, urlConverter);
             var result = pageService.ParseUrl(_baseUrl + path);
             return View("Index", result);
@@ -67,7 +71,9 @@ namespace AspNetExample.Controllers
                 SubmitEditedPage(path, exists, repository);
                 return Redirect(Request.Url.AbsolutePath);
             }
-            var page = repository.Get(path);
+            var urlConverter = new UrlConverter(_baseUrl, repository);
+            var reference = urlConverter.MapUrlToWikiPath(path);
+            var page = repository.Get(reference);
             ViewBag.Text = page == null ? "" : page.Body;
             return View("Editor");
         }
@@ -76,7 +82,9 @@ namespace AspNetExample.Controllers
         {
             var src = Request.QueryString["image"];
             var mime = MimeMapping.GetMimeMapping(Path.GetFileName(src));
-            return File(Path.Combine(folderPath, src.Replace("/", "\\")), mime);
+            var fileUrl = src.Replace("/", "\\").TrimStart('\\');
+            var path = Path.Combine(folderPath, fileUrl);
+            return File(path, mime);
         }
 
         private void SubmitEditedPage(string wikiPagePath, bool pageExists, IPageRepository repository)
@@ -85,7 +93,7 @@ namespace AspNetExample.Controllers
             if (string.IsNullOrEmpty(title))
             {
                 var body = Request.Form["Body"];
-                var pos = body.IndexOfAny(new[] {'\r', '\n'});
+                var pos = body.IndexOfAny(new[] { '\r', '\n' });
                 title = pos == -1 ? "" : body.Substring(0, pos);
             }
             var crudPage = new EditedPage

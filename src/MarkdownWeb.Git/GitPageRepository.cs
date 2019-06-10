@@ -161,7 +161,14 @@ namespace MarkdownWeb.Git
             {
                 ErrorLogTask?.Invoke(LogLevel.Info, "Attempting to pull form origin " + _config.RepositoryUri, null);
                 var user = new Signature("markdownweb", "info@markdownweb.com", DateTimeOffset.UtcNow);
-                var options = new PullOptions {MergeOptions = new MergeOptions {CommitOnSuccess = true}};
+                var options = new PullOptions {MergeOptions = new MergeOptions
+                {
+                    CommitOnSuccess = true,
+                    FailOnConflict = false,
+                    MergeFileFavor = MergeFileFavor.Theirs,
+                    IgnoreWhitespaceChange = true,
+                    FileConflictStrategy = CheckoutFileConflictStrategy.Theirs,
+                }};
                 Commands.Pull(_repos, user, options);
                 //var originMaster=_repos.Branches["origin/master"];
                 //_repos.Merge(originMaster, user, new MergeOptions(){CommitOnSuccess = true})
