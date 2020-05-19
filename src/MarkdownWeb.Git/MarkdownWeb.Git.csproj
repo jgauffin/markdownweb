@@ -18,8 +18,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageReleaseNotes>Updated base package dependency.</PackageReleaseNotes>
-    <Version>1.0.10</Version>
+    <PackageReleaseNotes>Corrected libgit versions.</PackageReleaseNotes>
+    <Version>1.0.11</Version>
   </PropertyGroup>
 
   <Target Name="PostBuild" BeforeTargets="PostBuildEvent">
