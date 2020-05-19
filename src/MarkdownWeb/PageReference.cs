@@ -66,6 +66,16 @@ namespace MarkdownWeb
         /// <returns></returns>
         public string MapReferencedDocument(string wikiPath)
         {
+            if (wikiPath.StartsWith("/"))
+            {
+                return wikiPath;
+            }
+
+            if (wikiPath.StartsWith("~/"))
+            {
+                return wikiPath;
+            }
+
             var myParts = GivenWikiPath.Split(new []{'/'}, StringSplitOptions.RemoveEmptyEntries).ToList();
             var referencedParts = wikiPath.Split(new []{'/'}, StringSplitOptions.RemoveEmptyEntries).ToList();
 

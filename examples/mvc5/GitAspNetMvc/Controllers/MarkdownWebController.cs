@@ -25,13 +25,13 @@ namespace GitAspNetMvc.Controllers
     public class MarkdownWebController : Controller
     {
         public const string URL = "doc/";
-        public const string DIRECTORY = "~/App_Data/Markdown/";
+        public const string DIRECTORY = @"C:\src\1tcompany\coderr\OSS\Coderr.Documentation\";
         private string _folderPath;
         private string _baseUrl;
 
         public MarkdownWebController()
         {
-            _folderPath = HostingEnvironment.MapPath(DIRECTORY);
+            _folderPath = DIRECTORY[1] == ':' ? DIRECTORY : HostingEnvironment.MapPath(DIRECTORY);
         }
 
         protected override void Initialize(RequestContext requestContext)

@@ -8,17 +8,20 @@ namespace MarkdownWeb
     public class UrlConverter : IUrlPathConverter
     {
         private readonly IPageSource _pageSource;
+        private readonly Func<string, string> _virtualPathLookup;
         private readonly string _rootAbsolutePath;
 
-        public UrlConverter(IPageSource pageSource)
+        public UrlConverter(IPageSource pageSource, Func<string, string> virtualPathLookup = null)
         {
             _pageSource = pageSource ?? throw new ArgumentNullException(nameof(pageSource));
+            _virtualPathLookup = virtualPathLookup;
         }
 
-        public UrlConverter(string rootAbsolutePath, IPageSource pageSource)
+        public UrlConverter(string rootAbsolutePath, IPageSource pageSource, Func<string, string> virtualPathLookup = null)
         {
             _rootAbsolutePath = rootAbsolutePath ?? throw new ArgumentNullException(nameof(rootAbsolutePath));
             _pageSource = pageSource ?? throw new ArgumentNullException(nameof(pageSource));
+            _virtualPathLookup = virtualPathLookup;
 
             if (!_rootAbsolutePath.EndsWith("/"))
                 _rootAbsolutePath += "/";
@@ -42,15 +45,17 @@ namespace MarkdownWeb
         public string ToWebUrl(string wikiPath)
         {
             if (wikiPath == null) throw new ArgumentNullException(nameof(wikiPath));
-            if (wikiPath.StartsWith("/"))
-                wikiPath = wikiPath.Substring(1);
+            if (wikiPath.StartsWith("~/"))
+            {
+                return _virtualPathLookup(wikiPath);
+            }
 
-            return _rootAbsolutePath + wikiPath;
+            return _rootAbsolutePath + wikiPath.TrimStart('/');
         }
 
         public string ToAbsolutePath(string virtualPath)
         {
-            throw new NotImplementedException();
+            return _virtualPathLookup?.Invoke(virtualPath) ?? virtualPath;
         }
 
         public PageReference MapUrlToWikiPath(string websiteAbsolutePath)

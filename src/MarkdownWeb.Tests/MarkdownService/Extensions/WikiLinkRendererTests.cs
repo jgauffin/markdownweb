@@ -93,6 +93,30 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
         }
 
         [Fact]
+        public void Should_handle_absolute_path_image_links()
+        {
+            var pageSource = Substitute.For<IPageSource>();
+            var links = new List<PageLink>();
+            var text = "some text ![majs](/book/image.png) flflf";
+            var context = new MarkdownParserContext(Substitute.For<IPageRepository>(), links)
+            {
+                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/", "index.md"),
+                UrlPathConverter = new UrlConverter("/documentation/", pageSource),
+
+            };
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+
+
+            var builder = new MarkdownPipelineBuilder();
+            builder.UseAdvancedExtensions();
+            builder.Extensions.AddIfNotAlready(new LinkRendererExtension(context));
+            var pipeline = builder.Build();
+            var actual = Markdown.ToHtml(text, pipeline);
+
+            actual.Should().Contain(@" <img src=""/documentation/?image=/book/image.png"" alt=""majs"" /> ");
+        }
+
+        [Fact]
         public void show_work_for_normal_links()
         {
             var pageSource = Substitute.For<IPageSource>();

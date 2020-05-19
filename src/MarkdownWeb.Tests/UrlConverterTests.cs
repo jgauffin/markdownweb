@@ -26,6 +26,16 @@ namespace MarkdownWeb.Tests
         }
 
         [Fact]
+        public void should_use_virtualLookuper_when_specified()
+        {
+
+            var sut = new UrlConverter("/trafikinfo/Intranet/doc/", _repository, x => $"/mofo{x.Remove(0,1)}");
+            var actual = sut.ToWebUrl("~/FolderTest/");
+
+            actual.Should().Be("/mofo/FolderTest/");
+        }
+
+        [Fact]
         public void wiki_path_should_be_appended_to_the_root_url()
         {
 
@@ -44,6 +54,26 @@ namespace MarkdownWeb.Tests
 
             actual.RealWikiPath.Should().Be("/foldertest/");
             actual.Filename.Should().Be("index.md");
+        }
+
+        [Fact]
+        public void ToWebUrl_should_base_on_wikiRoot_for_urls_starting_with_slash()
+        {
+
+            var sut = new UrlConverter("/Intranet/", _repository);
+            var actual = sut.ToWebUrl("/foldertest/");
+
+            actual.Should().Be("/Intranet/foldertest/");
+        }
+
+        [Fact]
+        public void ToWebUrl_should_base_build_on_root()
+        {
+
+            var sut = new UrlConverter("/Intranet/", _repository);
+            var actual = sut.ToWebUrl("/foldertest/");
+
+            actual.Should().Be("/Intranet/foldertest/");
         }
 
         [Fact]

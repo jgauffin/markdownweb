@@ -168,6 +168,7 @@ namespace MarkdownWeb.Git
                     MergeFileFavor = MergeFileFavor.Theirs,
                     IgnoreWhitespaceChange = true,
                     FileConflictStrategy = CheckoutFileConflictStrategy.Theirs,
+                    
                 }};
                 Commands.Pull(_repos, user, options);
                 //var originMaster=_repos.Branches["origin/master"];
