@@ -3,7 +3,7 @@
     <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <Authors>Jonas Gauffin</Authors>
-    <PackageLicenseUrl>https://opensource.org/licenses/apache-2.0</PackageLicenseUrl>
+    <License>AGPL</License>
     <PackageProjectUrl>https://github.com/jgauffin/markdownweb</PackageProjectUrl>
     <Description>Wiki generator with markdown and git support (NetStandard 1.5+ and .NET 451+)</Description>
     <Copyright>© jgauffin 2020</Copyright>
