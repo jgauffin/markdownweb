@@ -118,12 +118,14 @@ namespace MarkdownWeb.Git
 
         public IReadOnlyList<PageReferenceWithChildren> GetAllPages(string wikiPath)
         {
-            throw new NotImplementedException();
+            EnsureCache();
+            return _fileBasedRepository.GetAllPages(wikiPath);
         }
 
         public IReadOnlyList<PageReferenceWithChildren> GetAllPages()
         {
-            throw new NotImplementedException();
+            EnsureCache();
+            return _fileBasedRepository.GetAllPages("/");
         }
 
         /// <inheritdoc />
