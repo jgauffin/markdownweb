@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MarkdownWeb
 {
@@ -10,6 +11,14 @@ namespace MarkdownWeb
 
         public PageReferenceWithChildren(string friendlyUrl, string wikiUrl) : base(friendlyUrl, wikiUrl)
         {
+        }
+
+        public bool HasChildDocuments
+        {
+            get
+            {
+                return Children.Any(x => x.HasChildDocuments) || Children.Any(x => x.WikiUrl.Contains(".md"));
+            }
         }
 
         public void AddChild(PageReference reference)

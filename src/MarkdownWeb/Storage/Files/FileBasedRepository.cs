@@ -188,7 +188,7 @@ namespace MarkdownWeb.Storage.Files
             }
             else
             {
-                node = new PageReferenceWithChildren(ourPath, $"{ourPath}index.md") { IsDirectory = true };
+                node = new PageReferenceWithChildren(ourPath, $"{ourPath}{PageReference.IndexFile}") { IsDirectory = true };
                 parent.AddChild(node);
             }
 

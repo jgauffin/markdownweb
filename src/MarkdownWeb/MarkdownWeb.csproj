@@ -15,8 +15,8 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
-    <PackageReleaseNotes>Added index caching and the ability to list subpages.</PackageReleaseNotes>
-    <version>1.4</version>
+    <PackageReleaseNotes>Fixed page index generation.</PackageReleaseNotes>
+    <version>1.4.1</version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Markdig" version="0.26.0" />

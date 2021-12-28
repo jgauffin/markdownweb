@@ -86,7 +86,10 @@ namespace MarkdownWeb
             body.AppendLine("<ul class=\"pagelist\">");
             foreach (var subPage in pages)
             {
-                GenerateIndex(subPage, body);
+                if (subPage.HasChildDocuments || !subPage.IsDirectory)
+                {
+                    GenerateIndex(subPage, body);
+                }
             }
             body.AppendLine("</ul>");
 
@@ -103,11 +106,11 @@ namespace MarkdownWeb
             var summary = GetPageSummary(node);
             if (node.IsDirectory)
             {
-                body.Append($"<li class=\"folder\"><a href=\"{summary.Url}\">{summary.Title}");
+                body.Append($"<li class=\"folder\"><a href=\"{summary.Url}\">{summary.Title}</a>");
             }
             else
             {
-                body.Append($"<li><a href=\"{summary.Url}\">{summary.Title}");
+                body.Append($"<li><a href=\"{summary.Url}\">{summary.Title}</a>");
             }
 
             if (node.Children.Any())
@@ -116,11 +119,14 @@ namespace MarkdownWeb
                 body.AppendLine("<ul class=\"child\">");
                 foreach (var subPage in node.Children)
                 {
-                    GenerateIndex(subPage, body);
+                    if (subPage.HasChildDocuments || !subPage.IsDirectory)
+                    {
+                        GenerateIndex(subPage, body);
+                    }
                 }
                 body.AppendLine("</ul>");
-
             }
+
             body.AppendLine("</li>");
         }
 
@@ -223,10 +229,12 @@ namespace MarkdownWeb
             var page = _repository.Get(reference);
             if (page == null)
             {
+                var pos = reference.FriendlyWikiUrl.Trim('/').LastIndexOf('/');
+                var title = reference.FriendlyWikiUrl.Trim('/').Substring(pos + 1);
                 return new PageSummary
                 {
                     Abstract = "",
-                    Title = reference.FriendlyWikiUrl,
+                    Title = title.Length == 1 ? char.ToUpper(title[0]).ToString() : char.ToUpper(title[0]) + title.Substring(1),
                     Url = _urlPathConverter.ToWebUrl(reference.FriendlyWikiUrl),
                     PageReference = reference
                 };
