@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using FluentAssertions;
 using MarkdownWeb.PostFilters;
@@ -23,7 +24,7 @@ namespace MarkdownWeb.Tests
 
             actual.Body.Should().Contain("/intranet/?image=/NoDoc/image.png");
         }
-
+        
         [Fact]
         public void parses_image_link_correctly_when_using_path_alias_for_document()
         {
@@ -118,7 +119,7 @@ http://this.link
             pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
             var pathConverter = new UrlConverter("/intranet/", pageSource);
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
-            var reference = new PageReference("/" , "/", "index.md");
+            var reference = new PageReference("/" , "/index.md");
 
             var sut = new PageService(repository, pathConverter);
             var actual = sut.ParseString("/intranet/", @"
@@ -259,7 +260,7 @@ System         | Alias            | Nod 1            | Nod 2
         }
 
         [Fact]
-        public void Should_not_mark_exisiting_links_as_missing()
+        public void Should_not_mark_existing_links_as_missing()
         {
             var pageSource = Substitute.For<IPageSource>();
             pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
@@ -335,7 +336,58 @@ for (int i = 0; i < 10; ++i)
             var actual = sut.GetPages();
 
             actual.First().Url.Should().Be("/intranet/");
-            actual[1].Url.Should().Be("/intranet/page.md");
+            actual[1].Url.Should().Be("/intranet/page/");
+        }
+
+        [Fact]
+        public void Generate_list_when_page_is_missing_and_there_are_multiple_matches()
+        {
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+            var pathConverter = new UrlConverter("/intranet/", repository);
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseUrl("/intranet/some/twodoc/");
+
+            actual.Body.Should().Contain("/FolderTest/subfolder/twodoc");
+            actual.Body.Should().Contain("/NoDoc/TwoDoc");
+        }
+
+        [Fact] 
+        public void Return_contents_if_only_one_missing_page()
+        {
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+            var pathConverter = new UrlConverter("/intranet/", repository);
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseUrl("/intranet/some/other/");
+
+            actual.Body.Should().Contain("This is other");
+        }
+
+        [Fact]
+        public void Return_contents_if_only_one_missing_page_and_using_segments()
+        {
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+            var pathConverter = new UrlConverter("/intranet/", repository);
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseUrl("/intranet/some/subfolder/twodoc");
+
+            actual.Body.Should().Contain("Testing nesting");
+        }
+
+        [Fact]
+        public void GenerateIndex()
+        {
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.GenerateIndex("/intranet/");
+
+            Debug.WriteLine(actual);
         }
 
         [Fact]
@@ -348,7 +400,7 @@ for (int i = 0; i < 10; ++i)
             var sut = new PageService(repository, pathConverter);
             var actual = sut.GetMissingPages();
 
-            actual[0].Url.Should().Be("/intranet/some/missing");
+            actual[0].Url.Should().Be("/intranet/some/missing/");
             actual[0].References[0].Should().Be("/index.md");
         }
     }

@@ -35,6 +35,12 @@ namespace MarkdownWeb.Storage
         IEnumerable<string> GetAllPagesAsLinks();
 
         /// <summary>
+        /// Recursively scan all folders and generate a list of all pages.
+        /// </summary>
+        /// <returns></returns>
+        IReadOnlyList<PageReferenceWithChildren> GetAllPages(string wikiPath);
+
+        /// <summary>
         ///     Check if page exists
         /// </summary>
         /// <param name="pageUrl">Relative to the wiki root</param>

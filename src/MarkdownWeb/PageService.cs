@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using MarkdownWeb.Helpers;
 using MarkdownWeb.MarkdownService;
@@ -72,6 +73,57 @@ namespace MarkdownWeb
             return Parse(pageReference, document);
         }
 
+        /// <summary>
+        /// Generate index for a page.
+        /// </summary>
+        /// <param name="websiteUrl">Must start with the sub path that the wiki is located in.</param>
+        /// <returns></returns>
+        public HtmlPage GenerateIndex(string websiteUrl)
+        {
+            var wikiPagePath = _urlPathConverter.MapUrlToWikiPath(websiteUrl);
+            var pages = _repository.GetAllPages(wikiPagePath.FriendlyWikiUrl);
+            var body = new StringBuilder();
+            body.AppendLine("<ul class=\"pagelist\">");
+            foreach (var subPage in pages)
+            {
+                GenerateIndex(subPage, body);
+            }
+            body.AppendLine("</ul>");
+
+            return new HtmlPage
+            {
+                Body = body.ToString(),
+                Title = "Page list",
+                WikiPageReference = wikiPagePath
+            };
+        }
+
+        private void GenerateIndex(PageReferenceWithChildren node, StringBuilder body)
+        {
+            var summary = GetPageSummary(node);
+            if (node.IsDirectory)
+            {
+                body.Append($"<li class=\"folder\"><a href=\"{summary.Url}\">{summary.Title}");
+            }
+            else
+            {
+                body.Append($"<li><a href=\"{summary.Url}\">{summary.Title}");
+            }
+
+            if (node.Children.Any())
+            {
+                body.AppendLine();
+                body.AppendLine("<ul class=\"child\">");
+                foreach (var subPage in node.Children)
+                {
+                    GenerateIndex(subPage, body);
+                }
+                body.AppendLine("</ul>");
+
+            }
+            body.AppendLine("</li>");
+        }
+
         public HtmlPage ParseUrl(string url)
         {
             var wikiPagePath = _urlPathConverter.MapUrlToWikiPath(url);
@@ -82,11 +134,38 @@ namespace MarkdownWeb
             if (page != null)
                 return Parse(wikiPagePath, page.Body);
 
-            var wikiPath = _urlPathConverter.RemoveWebRoot(url);
+            // Failed to find page.
             var allPages = GetPages();
-            var pages = allPages
-                .Where(x => x.PageReference.RealWikiPath.StartsWith(wikiPath))
-                .ToList();
+
+            // Try to find the most specific name first.
+            var notFoundPath = _urlPathConverter.RemoveWebRoot(url).Trim('/');
+            var pos = 0;
+            var pages = new List<PageSummary>();
+            while (true)
+            {
+                var wikiPath = notFoundPath.Substring(pos);
+                if (pos == -1)
+                {
+                    break;
+                }
+
+                pages = allPages
+                    .Where(x => x.PageReference.WikiUrl.IndexOf(wikiPath, StringComparison.OrdinalIgnoreCase) != -1)
+                    .ToList();
+                if (pages.Any())
+                {
+                    break;
+                }
+
+                pos = notFoundPath.IndexOf('/', pos + 1);
+            }
+
+            if (pages.Count == 1)
+            {
+                var foundPage = _repository.Get(pages[0].PageReference);
+                return Parse(pages[0].PageReference, foundPage.Body);
+            }
+
             if (pages.Any())
             {
                 var body = new StringBuilder();
@@ -105,15 +184,15 @@ namespace MarkdownWeb
                 };
             }
 
-            var pagesUrl=_urlPathConverter.ToWebUrl("/pages/");
+            var pagesUrl = _urlPathConverter.ToWebUrl("/pages/");
             return new HtmlPage
             {
-                
+
                 Body =
                     $@"<p>The page specified is missing: {url}</p>
                     <p>Visit our <a href=""{pagesUrl}"">page list</a> to find the correct page.",
                 Title = "Missing page",
-                
+
                 WikiPageReference = wikiPagePath
             };
 
@@ -128,24 +207,42 @@ namespace MarkdownWeb
             {
                 var webUrl = _urlPathConverter.ToWebUrl(pageLink);
                 var reference = _urlPathConverter.MapUrlToWikiPath(webUrl);
-                var page = _repository.Get(reference);
-                if (string.IsNullOrEmpty(page.Body))
-                    continue;
 
-                var parsedPage = Parse(reference, page.Body);
-                if (webUrl.EndsWith("index.md"))
-                    webUrl = webUrl.Remove(webUrl.Length - 8);
-
-                pages.Add(new PageSummary
+                var summary = GetPageSummary(reference);
+                if (summary != null)
                 {
-                    Abstract = parsedPage.Abstract,
-                    Title = parsedPage.Title,
-                    Url = webUrl,
-                    PageReference = reference
-                });
+                    pages.Add(summary);
+                }
             }
 
             return pages;
+        }
+
+        private PageSummary GetPageSummary(PageReference reference)
+        {
+            var page = _repository.Get(reference);
+            if (page == null)
+            {
+                return new PageSummary
+                {
+                    Abstract = "",
+                    Title = reference.FriendlyWikiUrl,
+                    Url = _urlPathConverter.ToWebUrl(reference.FriendlyWikiUrl),
+                    PageReference = reference
+                };
+            }
+
+            if (string.IsNullOrEmpty(page.Body))
+                return null;
+
+            var parsedPage = Parse(reference, page.Body);
+            return new PageSummary
+            {
+                Abstract = parsedPage.Abstract,
+                Title = parsedPage.Title,
+                Url = _urlPathConverter.ToWebUrl(reference.FriendlyWikiUrl),
+                PageReference = reference
+            };
         }
 
         public List<MissingPage> GetMissingPages()

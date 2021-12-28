@@ -22,9 +22,9 @@ namespace MarkdownWeb
                 pages.AddLast(newNode);
             }
 
-            var root = pages.FirstOrDefault(x=>x.PageReference.RealWikiPath == "/" && x.PageReference.Filename == "index.md");
+            var root = pages.FirstOrDefault(x=>x.PageReference.FriendlyWikiUrl == "/");
             if (root == null)
-                root = new PageTreeNode {PageReference = new PageReference("/", "/", "index.md")};
+                root = new PageTreeNode {PageReference = new PageReference("/", "/index.md")};
 
             var node = pages.First;
             while (node != null)
@@ -42,44 +42,47 @@ namespace MarkdownWeb
                 var parent = pages.FirstOrDefault(x => x.IsParent(currentPage));
 
                 // happens for root documents.
-                if (parent == null)
+                if (parent != null)
                 {
-                    if (currentPage.PageReference.RealWikiPath != "/")
+                    parent.AddChild(currentPage);
+                    node = node.Next;
+                    continue;
+                }
+
+                if (currentPage.PageReference.IsIndex)
+                {
+                    parent = root;
+                }
+                else
+                {
+                    var parts = currentPage.PageReference.WikiUrl.Split(new[] {'/'},
+                        StringSplitOptions.RemoveEmptyEntries);
+
+                    parent = root;
+
+
+                    //1 since we do not want to create the path for the given node if it's the index (i.e. root segment)
+                    var partsToSkip = currentPage.PageReference.IsIndex ? 1 : 0;
+                    for (int i = 0; i < parts.Length - partsToSkip; i++)
                     {
-                        var parts = currentPage.PageReference.RealWikiPath.Split(new[] { '/' },
-                            StringSplitOptions.RemoveEmptyEntries);
+                        var path = "/" + string.Join("/", parts.Take(i + 1));
+                        var page = pages.FirstOrDefault(x => x.IsForPath(path));
 
-                        parent = root;
-
-                        
-                        //1 since we do not want to create the path for the given node if it's the index (i.e. root segment)
-                        var partsToSkip = currentPage.PageReference.Filename == "index.md" ? 1 : 0;
-                        for (int i = 0; i < parts.Length - partsToSkip; i++)
+                        if (page == null)
                         {
-                            var path = "/" + string.Join("/", parts.Take(i + 1)) + "/";
-                            var page = pages.FirstOrDefault(x => x.IsForPath(path));
-
-                            if (page == null)
+                            var summary = new PageSummary
                             {
-                                var summary = new PageSummary
-                                {
-                                    PageReference = new PageReference(path, path, ""),
-                                    Title = Capitalize(parts[i]),
-                                    Url = $"/{rootUrl}{path}"
-                                };
-                                page = new PageTreeNode(summary, parent);
-                                parent.AddChild(page);
-                                pages.AddLast(page);
-                            }
-
-                            parent = page;
+                                PageReference = new PageReference(path + "/", path + "/index.md"),
+                                Title = Capitalize(parts[i]),
+                                Url = $"/{rootUrl}{path}"
+                            };
+                            page = new PageTreeNode(summary, parent);
+                            parent.AddChild(page);
+                            pages.AddLast(page);
                         }
-                    }
-                    else
-                    {
-                        parent = root;
-                    }
 
+                        parent = page;
+                    }
                 }
 
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace MarkdownWeb.Storage.Files
@@ -72,7 +73,62 @@ namespace MarkdownWeb.Storage.Files
         public IEnumerable<string> GetAllPagesAsLinks()
         {
             var directory = _rootFilePath.EndsWith("/") ? _rootFilePath + "/" : _rootFilePath;
-            foreach (var file in ScanDirectory(directory, directory)) yield return file;
+            List<string> items = new List<string>();
+            ScanDirectoryForFiles(directory, directory, items);
+            return items;
+        }
+
+        /// <summary>
+        /// List all pages that exist under a specific path.
+        /// </summary>
+        /// <param name="startWikiPath">Start path, "" or "/" = root.</param>
+        /// <returns></returns>
+        public IReadOnlyList<PageReferenceWithChildren> GetAllPages(string startWikiPath)
+        {
+            if (startWikiPath == null)
+            {
+                throw new ArgumentNullException(nameof(startWikiPath));
+            }
+
+            var node = new PageReferenceWithChildren("/", "/index.md");
+            startWikiPath = startWikiPath.TrimStart('/');
+            var path = _rootFilePath + startWikiPath.Replace('/', '\\');
+
+            ScanDirectory(_rootFilePath, path, node);
+            foreach (var child in node.Children)
+            {
+                AdjustFriendlyUrls(child);
+            }
+            return node.Children;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="node"></param>
+        /// <remarks>
+        ///<para>
+        ///Once we have scanned documents we have to convert files to url paths.
+        /// </para>
+        /// </remarks>
+        private void AdjustFriendlyUrls(PageReferenceWithChildren node)
+        {
+            foreach (var child in node.Children)
+            {
+                if (child.IsDirectory)
+                    continue;
+
+                var ourSuggestedPath = child.WikiUrl.Replace(".md", "/index.md");
+
+                // find all pages that are not directories (or index.md)
+                // and check if they can get a more friendly name, i.e. "/some/url/" instead of "/some/url.md"
+                if (node.Children.All(x => x.WikiUrl != ourSuggestedPath))
+                {
+                    child.FriendlyWikiUrl = child.WikiUrl.Replace(".md", "");
+                }
+
+                AdjustFriendlyUrls(child);
+            }
         }
 
         public bool Exists(PageReference page)
@@ -106,24 +162,70 @@ namespace MarkdownWeb.Storage.Files
 
         private string GetFilePath(PageReference page)
         {
-            var path = page.RealWikiPath.Trim('/');
-            path = Path.Combine(_rootFilePath, path, page.Filename);
+            var path = page.WikiUrl.Trim('/').Replace('/', '\\');
+            path = Path.Combine(_rootFilePath, path);
             return File.Exists(path) ? path : null;
         }
 
-        private IEnumerable<string> ScanDirectory(string rootDirectory, string directoryToScan)
+        /// <summary>
+        /// This method do not adjust friendly path, do that in a second pass using <see cref="AdjustFriendlyUrls"/>.
+        /// </summary>
+        /// <param name="rootDirectory"></param>
+        /// <param name="directoryToScan"></param>
+        /// <param name="parent"></param>
+        private void ScanDirectory(string rootDirectory, string directoryToScan, PageReferenceWithChildren parent)
         {
+            var ourPath = "/" + directoryToScan.Remove(0, rootDirectory.Length).Replace('\\', '/');
+            if (ourPath.Length > 2)
+            {
+                ourPath += "/";
+            }
+
+            PageReferenceWithChildren node;
+            if (ourPath == "/")
+            {
+                node = parent;
+            }
+            else
+            {
+                node = new PageReferenceWithChildren(ourPath, $"{ourPath}index.md") { IsDirectory = true };
+                parent.AddChild(node);
+            }
+
             var files = Directory.GetFiles(directoryToScan, "*.md");
             foreach (var file in files)
             {
-                var str = file.Remove(0, rootDirectory.Length).Replace('\\', '/');
-                yield return str.StartsWith("/") ? str : "/" + str;
+                var fullPath = "/" + file.Remove(0, rootDirectory.Length).Replace('\\', '/');
+                if (Path.GetFileName(file) == PageReference.IndexFile)
+                {
+                    // it's always added.
+                    continue;
+                }
+
+                var child = new PageReferenceWithChildren(fullPath, fullPath);
+                node.AddChild(child);
             }
 
             var dirs = Directory.GetDirectories(directoryToScan);
             foreach (var dir in dirs)
             {
-                foreach (var file in ScanDirectory(rootDirectory, dir)) yield return file;
+                ScanDirectory(rootDirectory, dir, node);
+            }
+        }
+
+        private void ScanDirectoryForFiles(string rootDirectory, string directoryToScan, List<string> items)
+        {
+            var files = Directory.GetFiles(directoryToScan, "*.md");
+            foreach (var file in files)
+            {
+                var str = file.Remove(0, rootDirectory.Length).Replace('\\', '/');
+                items.Add(str.StartsWith("/") ? str : "/" + str);
+            }
+
+            var dirs = Directory.GetDirectories(directoryToScan);
+            foreach (var dir in dirs)
+            {
+                ScanDirectoryForFiles(rootDirectory, dir, items);
             }
         }
     }

@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace MarkdownWeb
 {
@@ -73,7 +76,7 @@ namespace MarkdownWeb
             var path = givenWikiPath.TrimEnd('/');
             if (path == "" || path == "/")
             {
-                return new PageReference("/", "/", "index.md");
+                return new PageReference("/", "/index.md");
             }
 
             return ToReference(givenWikiPath);
@@ -81,32 +84,53 @@ namespace MarkdownWeb
 
         public PageReference ToReference(string givenWikiPath)
         {
-            var wikiPath = givenWikiPath.TrimEnd('/');
-
-            // try get document
-            var pos = wikiPath.LastIndexOf('/');
-            var document = wikiPath.Substring(pos + 1);
-            wikiPath = wikiPath.Substring(0, pos + 1);
-
-            // /some/path.md --> /some/path.md
-            if (document.Contains("."))
+            if (givenWikiPath == "/")
             {
-                var givenDocument = new PageReference(givenWikiPath, wikiPath, document);
-                return _pageSource.PageExists(givenDocument) ? givenDocument : null;
+                return new PageReference("/", $"/{PageReference.IndexFile}");
             }
 
-            // /some/path/  --> /some/path.md
-            var reference = new PageReference(givenWikiPath, wikiPath, document + ".md");
-            if (_pageSource.PageExists(reference))
-                return reference;
+            // we must always try the last segment as the documentName since friendly Urls are rewritten.
+            var withoutLastSlash = givenWikiPath.TrimEnd('/');
+            var lastSlashPos = withoutLastSlash.LastIndexOf('/');
+            var possibleDocumentName = withoutLastSlash.Substring(lastSlashPos + 1);
+            var withoutDocument = withoutLastSlash.Substring(0, lastSlashPos + 1);
 
-            // /some/path --> /some/path/index.md
-            reference = new PageReference(givenWikiPath, wikiPath + document, "index.md");
-            if (_pageSource.PageExists(reference))
-                return reference;
+            // possible paths:
+            //
+            // For page documents
+            // /some/path.md
+            // /some/path
+            //
+            // For index (same url as above, but index document)
+            // /some/path/
+            // /some/path/index.md
 
+            var possiblePageReferences = new List<PageReference>();
 
-            return null;
+            if (possibleDocumentName.Contains("."))
+            {
+                if (possibleDocumentName.Equals(PageReference.IndexFile, StringComparison.OrdinalIgnoreCase))
+                {
+                    // /some/path/index.md
+                    possiblePageReferences.Add(new PageReference(withoutDocument, givenWikiPath));
+                }
+                else
+                {
+                    // /some/path.md
+                    possiblePageReferences.Add(new PageReference(withoutDocument + Path.GetFileNameWithoutExtension(possibleDocumentName) + "/", givenWikiPath));
+                    possiblePageReferences.Add(new PageReference(givenWikiPath, givenWikiPath));
+                }
+            }
+            else
+            {
+                // /some/path/ (path.md)
+                possiblePageReferences.Add(new PageReference(givenWikiPath, withoutLastSlash + ".md"));
+
+                // /some/path/ (index.md)
+                possiblePageReferences.Add(new PageReference(givenWikiPath, withoutLastSlash + "/index.md"));
+            }
+
+            return possiblePageReferences.FirstOrDefault(reference => _pageSource.PageExists(reference));
         }
     }
 }

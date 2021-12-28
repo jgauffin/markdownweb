@@ -24,8 +24,7 @@ namespace MarkdownWeb.MarkdownService.Extensions
             if (renderer == null)
                 throw new ArgumentNullException(nameof(renderer));
 
-            var htmlRenderer = renderer as TextRendererBase<HtmlRenderer>;
-            if (htmlRenderer == null)
+            if (!(renderer is TextRendererBase<HtmlRenderer> htmlRenderer))
                 return;
 
             var orgRenderer = htmlRenderer.ObjectRenderers.FindExact<LinkInlineRenderer>();

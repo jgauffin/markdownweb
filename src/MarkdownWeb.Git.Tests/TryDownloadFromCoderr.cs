@@ -27,7 +27,7 @@ namespace MarkdownWeb.Git.Tests
         public void Should_be_able_to_download_once()
         {
             var waiter = new ManualResetEvent(false);
-            var pageReference = new PageReference("/", "/", "index.md");
+            var pageReference = new PageReference("/", "/index.md");
             var settings = new GitStorageConfiguration
             {
                 FetchDirectory = _path,
@@ -48,7 +48,7 @@ namespace MarkdownWeb.Git.Tests
         public void Should_be_able_To_download_another_time_without_getting_sync_errors()
         {
             var waiter = new ManualResetEvent(false);
-            var pageReference = new PageReference("/", "/", "index.md");
+            var pageReference = new PageReference("/", "/index.md");
             var settings = new GitStorageConfiguration
             {
                 FetchDirectory = _path,

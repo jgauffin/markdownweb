@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <Authors>Jonas Gauffin</Authors>
     <License>AGPL</License>
     <PackageProjectUrl>https://github.com/jgauffin/markdownweb</PackageProjectUrl>
     <Description>Download wiki pages from a git repository (will also fetch updates automatically)</Description>
-    <Copyright>© jgauffin 2019</Copyright>
+    <Copyright>© jgauffin 2021</Copyright>
     <PackageTags>sequence-diagrams markdown html wiki git</PackageTags>
     <Product>MarkdownWeb ($(TargetFramework))</Product>
     <IncludeSymbols>true</IncludeSymbols>
@@ -18,8 +18,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageReleaseNotes>Corrected libgit versions.</PackageReleaseNotes>
-    <Version>1.0.11</Version>
+    <PackageReleaseNotes>Updated libgit versions.</PackageReleaseNotes>
+    <Version>1.0.13</Version>
   </PropertyGroup>
 
   <Target Name="PostBuild" BeforeTargets="PostBuildEvent">

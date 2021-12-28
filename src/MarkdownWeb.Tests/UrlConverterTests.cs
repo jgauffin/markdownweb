@@ -52,8 +52,7 @@ namespace MarkdownWeb.Tests
             var sut = new UrlConverter("/Intranet/", _repository);
             var actual = sut.MapUrlToWikiPath("/intranet/foldertest/");
 
-            actual.RealWikiPath.Should().Be("/foldertest/");
-            actual.Filename.Should().Be("index.md");
+            actual.WikiUrl.Should().Be("/foldertest/index.md");
         }
 
         [Fact]
@@ -83,7 +82,8 @@ namespace MarkdownWeb.Tests
             var sut = new UrlConverter("/intranet/", _repository);
             var actual = sut.MapUrlToWikiPath("/intranet/");
 
-            actual.RealWikiPath.Should().Be("/");
+            actual.WikiUrl.Should().Be("/index.md");
+            actual.FriendlyWikiUrl.Should().Be("/");
         }
 
         [Fact]
@@ -93,7 +93,29 @@ namespace MarkdownWeb.Tests
             var sut = new UrlConverter("/intranet/", _repository);
             var actual = sut.MapUrlToWikiPath("/intranet");
 
-            actual.RealWikiPath.Should().Be("/");
+            actual.WikiUrl.Should().Be("/index.md");
+            actual.FriendlyWikiUrl.Should().Be("/");
+        }
+
+        [Fact]
+        public void Should_make_friendly_path_for_child_document()
+        {
+            var sut = new UrlConverter("/intranet/", _repository);
+
+            var actual = sut.ToReference("/FolderTest/other");
+
+            actual.WikiUrl.Should().Be("/FolderTest/other.md");
+            actual.FriendlyWikiUrl.Should().Be("/FolderTest/other/");
+        }
+
+        [Fact]
+        public void Should_support_image_urls()
+        {
+
+            var sut = new UrlConverter("/intranet/", _repository);
+            var actual = sut.ToReference("/NoDoc/image.png");
+
+            actual.Should().NotBeNull();
         }
 
 
@@ -104,7 +126,8 @@ namespace MarkdownWeb.Tests
             var sut = new UrlConverter("/", _repository);
             var actual = sut.MapUrlToWikiPath("");
 
-            actual.RealWikiPath.Should().Be("/");
+            actual.WikiUrl.Should().Be("/index.md");
+            actual.FriendlyWikiUrl.Should().Be("/");
         }
 
     }

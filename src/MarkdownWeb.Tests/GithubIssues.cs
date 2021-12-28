@@ -43,7 +43,7 @@ The result code is like below; it is missing a th closing tag and merge the rest
 
             var sut = new PageService(repository, pathConverter);
             sut.PostFilters.Add(new AnchorHeadings());
-            var actual = sut.ParseString(new PageReference("/", "/", "index.md"), markdown);
+            var actual = sut.ParseString(new PageReference("/", "/index.md"), markdown);
 
             actual.Body.Should().Contain("<h3 id=\"n3-ivfragment-secondaire-mvc5\">N3 IvFragment Secondaire MVC5</h3>");
             var posTable = actual.Body.IndexOf("</table>");
@@ -129,7 +129,7 @@ public ActionResult Save(AccountViewModel model)
             #endregion
 
             var parser = new PageService(repository, pathConverter);
-            var actual = parser.ParseString(new PageReference("/", "/", "index.md"), markdown);
+            var actual = parser.ParseString(new PageReference("/", "/index.md"), markdown);
 
         }
 

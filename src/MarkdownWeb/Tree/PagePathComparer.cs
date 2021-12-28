@@ -21,8 +21,13 @@ namespace MarkdownWeb.Tree
         /// </returns>
         public int Compare(PageSummary x, PageSummary y)
         {
-            var partsx = x.PageReference.RealWikiPath.Split(new []{'/'}, StringSplitOptions.RemoveEmptyEntries);
-            var partsy = y.PageReference.RealWikiPath.Split(new []{'/'}, StringSplitOptions.RemoveEmptyEntries);
+            if (x?.PageReference.Equals(y?.PageReference) == true)
+            {
+                return 0;
+            }
+
+            var partsx = x.PageReference.WikiUrl.Split(new []{'/'}, StringSplitOptions.RemoveEmptyEntries);
+            var partsy = y.PageReference.WikiUrl.Split(new []{'/'}, StringSplitOptions.RemoveEmptyEntries);
             var min = Math.Min(partsx.Length, partsy.Length);
             for (int i = 0; i < min; i++)
             {
@@ -36,15 +41,12 @@ namespace MarkdownWeb.Tree
             if (partsx.Length > partsy.Length)
                 return 1;
 
-            if (x.PageReference.Filename == y.PageReference.Filename)
-                return 0;
-
-            if (x.PageReference.Filename == "index.md")
+            if (x.PageReference.IsIndex)
                 return -1;
-            if (y.PageReference.Filename == "index.md")
+            if (y.PageReference.IsIndex)
                 return 1;
 
-            return x.PageReference.Filename.CompareTo(y.PageReference.Filename);
+            return x.PageReference.WikiUrl.CompareTo(y.PageReference.WikiUrl);
         }
     }
 }

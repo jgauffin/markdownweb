@@ -22,7 +22,7 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
         }
 
         [Fact]
-        public void ignore_bbcode_or_language_tags_for_syntax_highlighting()
+        public void ignore_bbCode_or_language_tags_for_syntax_highlighting()
         {
             var text = "some text [codeblock] flflf";
             var pageSource = Substitute.For<IPageSource>();
@@ -30,7 +30,7 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
             pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
             var context = new MarkdownParserContext(Substitute.For<IPageRepository>(), links)
             {
-                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/", "index.md"),
+                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/index.md"),
                 UrlPathConverter = new UrlConverter("/documentation/", pageSource),
             };
 
@@ -53,7 +53,7 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
             pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
             var context = new MarkdownParserContext(Substitute.For<IPageRepository>(), links)
             {
-                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/", "index.md"),
+                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/index.md"),
                 UrlPathConverter = new UrlConverter("/documentation/", pageSource),
                 
             };
@@ -76,7 +76,7 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
             var text = "some text ![majs](https://book/image.png) flflf";
             var context = new MarkdownParserContext(Substitute.For<IPageRepository>(), links)
             {
-                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/", "index.md"),
+                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/index.md"),
                 UrlPathConverter = new UrlConverter("/documentation/", pageSource),
                 
             };
@@ -98,14 +98,14 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
             var pageSource = Substitute.For<IPageSource>();
             var links = new List<PageLink>();
             var text = "some text ![majs](/book/image.png) flflf";
-            var context = new MarkdownParserContext(Substitute.For<IPageRepository>(), links)
+            var repos = Substitute.For<IPageRepository>();
+            pageSource.PageExists(Arg.Is<PageReference>(x => x.WikiUrl == "/book/image.png")).Returns(true);
+            var context = new MarkdownParserContext(repos, links)
             {
-                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/", "index.md"),
+                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/index.md"),
                 UrlPathConverter = new UrlConverter("/documentation/", pageSource),
 
             };
-            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
-
 
             var builder = new MarkdownPipelineBuilder();
             builder.UseAdvancedExtensions();
@@ -124,7 +124,7 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
             var text = "some text [majs](https://book/image.png) flflf";
             var context = new MarkdownParserContext(Substitute.For<IPageRepository>(), links)
             {
-                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/", "index.md"),
+                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/index.md"),
                 UrlPathConverter = new UrlConverter("/documentation/", pageSource),
                 
             };
@@ -149,7 +149,7 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
             var repos = Substitute.For<IPageRepository>();
             var context = new MarkdownParserContext(repos, links)
             {
-                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/", "index.md"),
+                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/index.md"),
                 UrlPathConverter = new UrlConverter("/documentation/", pageSource),
             };
             pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
@@ -173,7 +173,7 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
             var repos = Substitute.For<IPageRepository>();
             var context = new MarkdownParserContext(repos, links)
             {
-                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/", "aspnet.md"),
+                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet.md"),
                 UrlPathConverter = new UrlConverter("/documentation/", pageSource),
             };
             repos.Exists(Arg.Any<PageReference>()).Returns(true);
@@ -195,7 +195,7 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
             var text = "some text [majs](../page) flflf";
             var context = new MarkdownParserContext(Substitute.For<IPageRepository>(), links)
             {
-                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/", "index.md"),
+                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/index.md"),
                 UrlPathConverter = new UrlConverter("/documentation/", _repository),
                 
             };
@@ -212,14 +212,16 @@ namespace MarkdownWeb.Tests.MarkdownService.Extensions
         [Fact]
         public void show_work_for_missing_wiki_links_that_have_a_page_name()
         {
+            var repos = Substitute.For<IPageRepository>();
             var links = new List<PageLink>();
             var text = "some text [majs](anotherpage.md) flflf";
-            var context = new MarkdownParserContext(Substitute.For<IPageRepository>(), links)
+            var context = new MarkdownParserContext(repos, links)
             {
-                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/", "index.md"),
+                RequestedPage = new PageReference("/client/libraries/aspnet/", "/client/libraries/aspnet/index.md"),
                 UrlPathConverter = new UrlConverter("/documentation/", _repository),
                 
             };
+            repos.Exists(Arg.Any<PageReference>()).Returns(false);
 
             var builder = new MarkdownPipelineBuilder();
             builder.UseAdvancedExtensions();

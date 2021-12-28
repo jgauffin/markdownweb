@@ -46,9 +46,8 @@ namespace AspNetExample.Controllers
             var repository = new FileBasedRepository(_folderPath);
             var urlConverter = new UrlConverter(_baseUrl, repository);
             var reference = urlConverter.ToReference(path);
-            var exists = repository.Exists(reference);
-            if (Request.QueryString["editor"] != null || !exists)
-                return HandlePageEdits(path, exists, repository, _baseUrl);
+            if (Request.QueryString["editor"] != null || reference == null)
+                return HandlePageEdits(path, reference != null, repository, _baseUrl);
 
             var pageService = new PageService(repository, urlConverter);
             var result = pageService.ParseUrl(_baseUrl + path);
@@ -71,12 +70,14 @@ namespace AspNetExample.Controllers
                 SubmitEditedPage(path, exists, repository);
                 return Redirect(Request.Url.AbsolutePath);
             }
+
             var urlConverter = new UrlConverter(_baseUrl, repository);
-            var reference = urlConverter.MapUrlToWikiPath(path);
-            var page = repository.Get(reference);
+            var reference = urlConverter.ToReference(path);
+            var page = reference != null ? repository.Get(reference) : null;
             ViewBag.Text = page == null ? "" : page.Body;
             return View("Editor");
         }
+
 
         private ActionResult ServeImages(string folderPath)
         {

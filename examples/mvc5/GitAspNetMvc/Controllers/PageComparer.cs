@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using MarkdownWeb;
 
 namespace GitAspNetMvc.Controllers
@@ -21,8 +22,8 @@ namespace GitAspNetMvc.Controllers
         /// </returns>
         public int Compare(PageSummary x, PageSummary y)
         {
-            var partsx = x.PageReference.RealWikiPath.Split(new []{'/'}, StringSplitOptions.RemoveEmptyEntries);
-            var partsy = y.PageReference.RealWikiPath.Split(new []{'/'}, StringSplitOptions.RemoveEmptyEntries);
+            var partsx = x.PageReference.WikiUrl.Split(new []{'/'}, StringSplitOptions.RemoveEmptyEntries);
+            var partsy = y.PageReference.WikiUrl.Split(new []{'/'}, StringSplitOptions.RemoveEmptyEntries);
             var min = Math.Min(partsx.Length, partsy.Length);
             for (int i = 0; i < min; i++)
             {
@@ -46,12 +47,14 @@ namespace GitAspNetMvc.Controllers
                     return result;
             }
 
-            if (x.PageReference.Filename == "index.md")
+            var filename1 = Path.GetFileName(x.PageReference.WikiUrl);
+            var filename2 = Path.GetFileName(y.PageReference.WikiUrl);
+            if (filename1 == "index.md")
                 return -1;
-            if (y.PageReference.Filename == "index.md")
+            if (filename2 == "index.md")
                 return 1;
 
-            return x.PageReference.Filename.CompareTo(y.PageReference.Filename);
+            return filename1.CompareTo(filename2);
         }
     }
 }

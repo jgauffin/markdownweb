@@ -38,6 +38,10 @@ namespace MarkdownWeb.Git
                 File.WriteAllText(CacheFile, "Now");
             }
 
+            if (!Repository.IsValid(config.FetchDirectory))
+            {
+                Directory.Delete(config.FetchDirectory, true);
+            }
             _repos = new Repository(config.FetchDirectory);
             _fileBasedRepository = new FileBasedRepository(config.DocumentationDirectory);
         }
@@ -110,6 +114,16 @@ namespace MarkdownWeb.Git
         {
             EnsureCache();
             return _fileBasedRepository.GetAllPagesAsLinks();
+        }
+
+        public IReadOnlyList<PageReferenceWithChildren> GetAllPages(string wikiPath)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IReadOnlyList<PageReferenceWithChildren> GetAllPages()
+        {
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc />

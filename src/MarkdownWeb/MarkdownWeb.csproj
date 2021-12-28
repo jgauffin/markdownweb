@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net461;netstandard2.1</TargetFrameworks>
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <Authors>Jonas Gauffin</Authors>
     <License>AGPL</License>
     <PackageProjectUrl>https://github.com/jgauffin/markdownweb</PackageProjectUrl>
-    <Description>Wiki generator with markdown and git support (NetStandard 1.5+ and .NET 451+)</Description>
-    <Copyright>© jgauffin 2020</Copyright>
+    <Description>Wiki generator with markdown and git support (NetStandard 2+ and .NET 461+)</Description>
+    <Copyright>© jgauffin 2021</Copyright>
     <PackageTags>sequence-diagrams markdown html wiki</PackageTags>
     <Product>MarkdownWeb ($(TargetFramework))</Product>
     <IncludeSymbols>true</IncludeSymbols>
@@ -15,19 +15,19 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
-    <PackageReleaseNotes>Corrected links parsing</PackageReleaseNotes>
-    <version>1.3.10</version>
+    <PackageReleaseNotes>Added index caching and the ability to list subpages.</PackageReleaseNotes>
+    <version>1.4</version>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Markdig" version="0.18.3" />
+    <PackageReference Include="Markdig" version="0.26.0" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="anglesharp">
-      <Version>0.14.0</Version>
+      <Version>0.16.1</Version>
     </PackageReference>
   </ItemGroup>
   
-  <Target Name="PostBuild" BeforeTargets="PostBuildEvent" Condition="'$(TargetFramework)' == 'net46'">
+  <Target Name="PostBuild" BeforeTargets="PostBuildEvent" Condition="'$(TargetFramework)' == 'net461'">
     <Exec Command="copy /y $(TargetPath) $(SolutionDir)..\examples\mvc5\lib" />
   </Target>
 

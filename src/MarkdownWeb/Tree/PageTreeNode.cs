@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 namespace MarkdownWeb.Tree
 {
+    /// <summary>
+    /// Used when generating a tree index for the wiki.
+    /// </summary>
     public class PageTreeNode
     {
         private readonly List<PageTreeNode> _children = new List<PageTreeNode>();
@@ -42,28 +47,31 @@ namespace MarkdownWeb.Tree
 
         public bool IsParent(PageTreeNode nodeToCheck)
         {
-            // Cannot be parent if we are not index.
-            if (PageReference.Filename != "index.md")
-                return false;
-
-            // other node is index, so we can be parent if they are one level below us.
-            if (nodeToCheck.PageReference.Filename == "index.md")
+            if (nodeToCheck == this)
             {
-                var nodeParts =
-                    nodeToCheck.PageReference.RealWikiPath.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
-                var ourParts = PageReference.RealWikiPath.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
-                if (ourParts.Length != nodeParts.Length - 1)
-                    return false;
-
-                for (var i = 0; i < ourParts.Length; i++)
-                    if (ourParts[i] != nodeParts[i])
-                        return false;
-
-                return true;
+                return false;
             }
 
-            // Child is not index.md, it is only a child to index.md on the same level.
-            return PageReference.RealWikiPath == nodeToCheck.PageReference.RealWikiPath;
+            var pos = nodeToCheck.PageReference.WikiUrl.LastIndexOf('/');
+            var otherPath = nodeToCheck.PageReference.WikiUrl.Substring(0, pos);
+
+            pos = PageReference.WikiUrl.LastIndexOf('/');
+            var ourPath = PageReference.WikiUrl.Substring(0, pos);
+
+            if (!nodeToCheck.PageReference.IsIndex)
+            {
+                // documents
+                return ourPath == otherPath;
+            }
+            
+            // Directories
+            if (!otherPath.StartsWith(ourPath))
+                return false;
+
+            // check that it's exactly the next depth.
+            var ourCount = ourPath.Count(x => x == '/');
+            var otherCount = otherPath.Count(x => x == '/');
+            return otherCount == ourCount + 1;
         }
 
         public override string ToString()
@@ -89,8 +97,12 @@ namespace MarkdownWeb.Tree
 
         public bool IsForPath(string path)
         {
-            return PageReference.RealWikiPath == path &&
-                   (PageReference.Filename == "index.md" || PageReference.Filename == "");
+            if (path == null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            return PageReference.WikiUrl.Equals(path) || PageReference.FriendlyWikiUrl.TrimEnd('/').Equals(path.TrimEnd('/'));
         }
     }
 }

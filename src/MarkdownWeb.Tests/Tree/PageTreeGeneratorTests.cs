@@ -25,7 +25,7 @@ namespace MarkdownWeb.Tests.Tree
             var sut = new PageTreeGenerator();
             var root = sut.Generate(pages, "/intranet/");
 
-            root.Children[0].PageReference.ToString().Should().Be("/page.md");
+            root.Children[3].PageReference.ToString().Should().Be("/page/");
         }
 
         [Fact]
