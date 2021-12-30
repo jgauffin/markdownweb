@@ -29,19 +29,28 @@ namespace MarkdownWeb.Git
             _config = config ?? throw new ArgumentNullException(nameof(config));
             UpdateInBackground = true;
 
-            if (!Directory.Exists(Path.Combine(config.FetchDirectory, ".git")))
-            {
-                Repository.Clone(_config.RepositoryUri.ToString(), _config.FetchDirectory);
-                //var repos = new Repository(_config.FetchDirectory);
-                //var branch = repos.CreateBranch("master", "origin/master");
-                //Commands.Checkout(_repos, branch);
-                File.WriteAllText(CacheFile, "Now");
-            }
-
+            // First validate it.
             if (!Repository.IsValid(config.FetchDirectory))
             {
                 Directory.Delete(config.FetchDirectory, true);
             }
+
+            if (!Directory.Exists(Path.Combine(config.FetchDirectory, ".git")))
+            {
+                // Next, check if we have a non-empty folder, but no .git.
+                // which means that something went wrong. Delete it.
+                if (Directory.Exists(config.FetchDirectory) && Directory.GetFiles(config.FetchDirectory).Length > 0)
+                {
+                    Directory.Delete(config.FetchDirectory, true);
+                }
+
+                // Ok, now we can clone everything.
+                Repository.Clone(_config.RepositoryUri.ToString(), _config.FetchDirectory);
+
+                File.WriteAllText(CacheFile, "Now");
+            }
+
+
             _repos = new Repository(config.FetchDirectory);
             _fileBasedRepository = new FileBasedRepository(config.DocumentationDirectory);
         }

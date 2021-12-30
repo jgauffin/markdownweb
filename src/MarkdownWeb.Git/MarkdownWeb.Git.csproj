@@ -18,8 +18,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageReleaseNotes>Updated repos implementation.</PackageReleaseNotes>
-    <Version>1.0.14</Version>
+    <PackageReleaseNotes>Changed how corrupt directories are handled.</PackageReleaseNotes>
+    <Version>1.0.15</Version>
   </PropertyGroup>
 
   <Target Name="PostBuild" BeforeTargets="PostBuildEvent">
