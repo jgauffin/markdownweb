@@ -19,7 +19,7 @@
 
   <PropertyGroup>
     <PackageReleaseNotes>Changed how corrupt directories are handled.</PackageReleaseNotes>
-    <Version>1.0.15</Version>
+    <Version>1.0.16</Version>
   </PropertyGroup>
 
   <Target Name="PostBuild" BeforeTargets="PostBuildEvent">
