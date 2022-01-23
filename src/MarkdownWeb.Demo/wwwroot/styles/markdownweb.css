@@ -1,0 +1,19 @@
+﻿.pagelist li {
+    list-style-type: none;
+}
+
+ul.pagelist, .pagelist ul {
+    padding-inline-start: 10px;
+}
+li a {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+li.folder a {
+    font-size: 1.2rem;
+}
+li {
+    padding-left: 0;
+    margin-left: 5px;
+}

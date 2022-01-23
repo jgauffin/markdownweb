@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32106.194
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownWeb", "MarkdownWeb\MarkdownWeb.csproj", "{45655E19-BA1D-427B-8BED-E10DDE9F7431}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkdownWeb", "MarkdownWeb\MarkdownWeb.csproj", "{45655E19-BA1D-427B-8BED-E10DDE9F7431}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{3CB8B9F1-82B5-4168-97E0-003148BA835E}"
 	ProjectSection(SolutionItems) = preProject
@@ -12,11 +12,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{3CB8B9
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownWeb.Tests", "MarkdownWeb.Tests\MarkdownWeb.Tests.csproj", "{471E44EF-2F7F-4086-A615-6732CDFC9FC4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkdownWeb.Tests", "MarkdownWeb.Tests\MarkdownWeb.Tests.csproj", "{471E44EF-2F7F-4086-A615-6732CDFC9FC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownWeb.Git", "MarkdownWeb.Git\MarkdownWeb.Git.csproj", "{4EF4156A-CC2F-43B9-A05E-704114017F8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkdownWeb.Git", "MarkdownWeb.Git\MarkdownWeb.Git.csproj", "{4EF4156A-CC2F-43B9-A05E-704114017F8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownWeb.Git.Tests", "MarkdownWeb.Git.Tests\MarkdownWeb.Git.Tests.csproj", "{1C4E6E79-AD91-4B50-88CA-AF0E49F971DA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkdownWeb.Git.Tests", "MarkdownWeb.Git.Tests\MarkdownWeb.Git.Tests.csproj", "{1C4E6E79-AD91-4B50-88CA-AF0E49F971DA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkdownWeb.Demo", "MarkdownWeb.Demo\MarkdownWeb.Demo.csproj", "{FECA61F2-9115-4F61-9C32-1141AB5FC5BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdownWeb.AspNetCore", "MarkdownWeb.AspNetCore\MarkdownWeb.AspNetCore.csproj", "{81280BB5-19AF-4332-9268-D9BDE1E96051}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,8 +44,19 @@ Global
 		{1C4E6E79-AD91-4B50-88CA-AF0E49F971DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C4E6E79-AD91-4B50-88CA-AF0E49F971DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C4E6E79-AD91-4B50-88CA-AF0E49F971DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FECA61F2-9115-4F61-9C32-1141AB5FC5BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FECA61F2-9115-4F61-9C32-1141AB5FC5BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FECA61F2-9115-4F61-9C32-1141AB5FC5BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FECA61F2-9115-4F61-9C32-1141AB5FC5BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81280BB5-19AF-4332-9268-D9BDE1E96051}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81280BB5-19AF-4332-9268-D9BDE1E96051}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81280BB5-19AF-4332-9268-D9BDE1E96051}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81280BB5-19AF-4332-9268-D9BDE1E96051}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A33E8E41-E474-4771-AC8E-8D9093B28B32}
 	EndGlobalSection
 EndGlobal

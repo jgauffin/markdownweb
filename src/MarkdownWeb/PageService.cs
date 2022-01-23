@@ -227,7 +227,7 @@ namespace MarkdownWeb
         private PageSummary GetPageSummary(PageReference reference)
         {
             var page = _repository.Get(reference);
-            if (page == null)
+            if (page == null || string.IsNullOrEmpty(page.Body))
             {
                 var pos = reference.FriendlyWikiUrl.Trim('/').LastIndexOf('/');
                 var title = reference.FriendlyWikiUrl.Trim('/').Substring(pos + 1);
@@ -239,9 +239,6 @@ namespace MarkdownWeb
                     PageReference = reference
                 };
             }
-
-            if (string.IsNullOrEmpty(page.Body))
-                return null;
 
             var parsedPage = Parse(reference, page.Body);
             return new PageSummary

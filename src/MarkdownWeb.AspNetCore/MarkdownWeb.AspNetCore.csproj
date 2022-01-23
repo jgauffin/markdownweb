@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net461;netstandard2.1</TargetFrameworks>
-    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <GenerateDocumentationFile Condition=" '$(Configuration)' == 'Release' ">true</GenerateDocumentationFile>
     <DebugType>full</DebugType>
     <IncludeSymbols>true</IncludeSymbols>
@@ -9,31 +9,28 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <PackageId>MarkdownWeb.AspNetCore</PackageId>
     <Authors>Jonas Gauffin</Authors>
     <License>AGPL</License>
     <PackageProjectUrl>https://github.com/jgauffin/markdownweb</PackageProjectUrl>
-    <Description>Wiki generator with markdown and git support (NetStandard 2+ and .NET 461+)</Description>
+    <Description>ASP.NET Core (v3.1+) support for MarkdownWeb.</Description>
     <Copyright>© jgauffin 2021</Copyright>
     <PackageTags>sequence-diagrams markdown html wiki</PackageTags>
     <Product>MarkdownWeb ($(TargetFramework))</Product>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
-    <PackageReleaseNotes>Will navigate to new url when pages have been moved.</PackageReleaseNotes>
-    <version>1.5.0</version>
+
+    <PackageReleaseNotes>First release.</PackageReleaseNotes>
+    <version>1.0.0</version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Markdig" version="0.26.0" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="anglesharp">
-      <Version>0.16.1</Version>
-    </PackageReference>
+    <ProjectReference Include="..\MarkdownWeb.Git\MarkdownWeb.Git.csproj" />
+    <ProjectReference Include="..\MarkdownWeb\MarkdownWeb.csproj" />
   </ItemGroup>
-  
-  <Target Name="PostBuild" BeforeTargets="PostBuildEvent" Condition="'$(TargetFramework)' == 'net461'">
-    <Exec Command="copy /y $(TargetPath) $(SolutionDir)..\examples\mvc5\lib" />
-  </Target>
 
 </Project>

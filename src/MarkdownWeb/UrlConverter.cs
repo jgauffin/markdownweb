@@ -40,7 +40,7 @@ namespace MarkdownWeb
                 url = $"/{url}";
 
             if (!url.StartsWith(_rootAbsolutePath))
-                throw new ArgumentException("Url do not start with the web root: " + url);
+                throw new ArgumentException($"Url do not start with the web root: {_rootAbsolutePath}, got: {url}");
 
             return "/" + url.Remove(0, _rootAbsolutePath.Length);
         }
@@ -68,7 +68,7 @@ namespace MarkdownWeb
             if (!websiteAbsolutePath.StartsWith("/"))
                 websiteAbsolutePath = $"/{websiteAbsolutePath}";
             if (!websiteAbsolutePath.TrimEnd('/').StartsWith(_rootAbsolutePath.TrimEnd('/'), StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("That is not a wiki path: " + websiteAbsolutePath);
+                throw new InvalidOperationException("A wiki path should start with '" + _rootAbsolutePath + "' which path '" + websiteAbsolutePath + "' do not.");
 
             var givenWikiPath = websiteAbsolutePath.TrimEnd('/') == _rootAbsolutePath.TrimEnd('/')
                 ? "/"
