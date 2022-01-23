@@ -44,11 +44,16 @@ Add the following to `ConfigureServices()` in your `Startup.cs`:
 ```csharp
 app.UseMarkdownWeb(options =>
 {
+    // URL to serve the markdown pages from
     options.Path = new PathString("/doc");
-    options.DocumentationDirectory = @"D:\src\1tcompany\coderr\OSS\Coderr.Documentation\docs";
+    
+    // Location on disk
+    options.DocumentationDirectory = @"D:\websites\mysite\wwwroot\docs";
 
     // To use a git repos:
     options.GitRepositoryUrl = "https://github.com/your/repository";
+    
+    // Where in the repos that the markdown files are located.
     options.GitSubFolder = @"docs\";
 });
 ```
