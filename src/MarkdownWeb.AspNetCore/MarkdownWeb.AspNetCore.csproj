@@ -11,7 +11,7 @@
   <PropertyGroup>
     <PackageId>MarkdownWeb.AspNetCore</PackageId>
     <Authors>Jonas Gauffin</Authors>
-    <License>AGPL</License>
+    <License>Apache-2.0</License>
     <PackageProjectUrl>https://github.com/jgauffin/markdownweb</PackageProjectUrl>
     <Description>ASP.NET Core (v3.1+) support for MarkdownWeb.</Description>
     <Copyright>© jgauffin 2021</Copyright>
@@ -20,8 +20,8 @@
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
 
-    <PackageReleaseNotes>First release.</PackageReleaseNotes>
-    <version>1.0.0</version>
+    <PackageReleaseNotes>Added HostBuilder extension.</PackageReleaseNotes>
+    <version>1.0.1</version>
   </PropertyGroup>
 
   <ItemGroup>
