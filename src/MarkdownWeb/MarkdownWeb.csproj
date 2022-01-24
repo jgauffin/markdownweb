@@ -19,7 +19,7 @@
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
     <PackageReleaseNotes>Will navigate to new url when pages have been moved.</PackageReleaseNotes>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
   </PropertyGroup>
 
   <ItemGroup>

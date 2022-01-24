@@ -80,10 +80,10 @@ There is also a IPageRepository which pulls a git repository.
 
 ## IUrlConverter
 
-Ass the markdown pages can be placed anywhere in your web site structure the library needs to know where the pages is located to make it
+As the markdown pages can be placed anywhere in your web site structure the library needs to know where the pages is located to make it's wiki links
 url independent. That transaction is handled by the `IUrlConverter` interface.
 
-For instance you might have the pages in `http://yoursite.com/doc/` while all links in the pages are relative to the doc root (`/`). Thus
+For instance you might have the pages in `http://yoursite.com/doc/` while all web site links in the pages are relative to the doc root (`/`). Thus
 when someone surfs to `http://yoursite.com/doc/users/create/` the library just want to see it as `/users/create`.
 
 ## Complete configuration
