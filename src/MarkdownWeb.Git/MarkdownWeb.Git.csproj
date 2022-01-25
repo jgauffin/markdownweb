@@ -18,8 +18,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageReleaseNotes>Will reset on conflicts.</PackageReleaseNotes>
-    <Version>1.0.17</Version>
+    <PackageReleaseNotes>Using the renamed model.</PackageReleaseNotes>
+    <Version>1.0.18</Version>
   </PropertyGroup>
 
   <Target Name="PostBuild" BeforeTargets="PostBuildEvent">
