@@ -34,13 +34,13 @@ namespace MarkdownWeb.Demo
             app.UseMarkdownWeb(options =>
             {
                 options.WebPath = new PathString("/doc");
-                options.DocumentationDirectory = @"D:\src\1tcompany\coderr\OSS\Coderr.Documentation\docs";
+                options.DocumentationDirectory = @"wiki";
 
                 // To use a git repos:
-                //options.GitRepositoryUrl = "https://github.com/coderr";
-                //options.GitSubFolder = @"docs\";
+                options.GitRepositoryUrl = "https://github.com/coderrio/coderr.documentation/";
+                options.GitSubFolder = @"docs\";
 
-                options.LayoutPage = "/Wiki.cshtml";
+                //options.LayoutPage = "/Wiki.cshtml";
             });
             app.UseStaticFiles();
 

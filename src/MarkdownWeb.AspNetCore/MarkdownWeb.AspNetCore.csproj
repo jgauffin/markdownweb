@@ -20,8 +20,8 @@
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
 
-    <PackageReleaseNotes>Added support for view engines.</PackageReleaseNotes>
-    <version>1.0.2</version>
+    <PackageReleaseNotes>Better conflict handling.</PackageReleaseNotes>
+    <version>1.0.3</version>
   </PropertyGroup>
 
   <ItemGroup>

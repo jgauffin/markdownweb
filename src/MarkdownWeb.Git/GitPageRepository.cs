@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +12,7 @@ using MarkdownWeb.Storage.Files;
 namespace MarkdownWeb.Git
 {
     /// <summary>
-    ///     Makes sure that the lastest source code is downloaded.
+    ///     Makes sure that the latest source code is downloaded.
     /// </summary>
     public class GitPageRepository : IPageRepository, IDisposable, IPageSource
     {
@@ -30,7 +32,7 @@ namespace MarkdownWeb.Git
             UpdateInBackground = true;
 
             // First validate it.
-            if (!Repository.IsValid(config.FetchDirectory))
+            if (!Repository.IsValid(config.FetchDirectory) && Directory.Exists(config.FetchDirectory))
             {
                 Directory.Delete(config.FetchDirectory, true);
             }
@@ -49,7 +51,6 @@ namespace MarkdownWeb.Git
 
                 File.WriteAllText(CacheFile, "Now");
             }
-
 
             _repos = new Repository(config.FetchDirectory);
             _fileBasedRepository = new FileBasedRepository(config.DocumentationDirectory);
@@ -82,6 +83,11 @@ namespace MarkdownWeb.Git
         ///     </para>
         /// </remarks>
         public bool UpdateInBackground { get; set; }
+
+        /// <summary>
+        /// Do a <c>reset --hard</c> if there are conflicts on pull. Default true;
+        /// </summary>
+        public bool ResetOnConflicts { get; set; } = true;
 
         private string CacheFile
         {
@@ -195,7 +201,20 @@ namespace MarkdownWeb.Git
                     FileConflictStrategy = CheckoutFileConflictStrategy.Theirs,
                     
                 }};
-                Commands.Pull(_repos, user, options);
+
+                try
+                {
+                    Commands.Pull(_repos, user, options);
+                }
+                catch (CheckoutConflictException ex)
+                {
+                    if (!ResetOnConflicts)
+                        throw;
+
+                    ErrorLogTask?.Invoke(LogLevel.Warning, "Got conflict, doing a reset hard.", ex);
+                    _repos.Reset(ResetMode.Hard);
+                    Commands.Pull(_repos, user, options);
+                }
                 //var originMaster=_repos.Branches["origin/master"];
                 //_repos.Merge(originMaster, user, new MergeOptions(){CommitOnSuccess = true})
                 File.WriteAllText(cacheFile, "Now");

@@ -100,11 +100,6 @@ namespace MarkdownWeb.AspNetCore
                 return _repository;
             }
 
-            if (Debugger.IsAttached)
-            {
-                return new FileBasedRepository(_docDirectory);
-            }
-
             var settings = new GitStorageConfiguration
             {
                 // directory where we should store the fetched files.
@@ -118,7 +113,7 @@ namespace MarkdownWeb.AspNetCore
 
             _repository = new GitPageRepository(settings)
             {
-                ErrorLogTask = (level, errMsg, exception) => { _options.ErrorLog(errMsg, exception); },
+                ErrorLogTask = (level, errMsg, exception) => { _options.ErrorLog?.Invoke(errMsg, exception); },
                 DeleteAndFetchOnErrors = true,
                 UpdateInBackground = true
             };
