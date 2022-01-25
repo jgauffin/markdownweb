@@ -55,15 +55,15 @@ That's it.
 
 ## Customizing
 
-MarkdownWeb supports for view engine files and plain HTML.
+MarkdownWeb supports view engine files and plain HTML.
 
 ### View engine files
 
-MarkdownWeb looks for "Views\Shared\Wiki.cshtml" per default, change it using `options.LayoutPage`.
-
-View engine files, it must be placed where view engines normally look for it (typically `Views\`). By default, MarkdownWeb tries to find a view named `Views\Shared\Wiki.cshtml`.
+MarkdownWeb looks for `Views\Shared\Wiki.cshtml` per default, change it using `options.LayoutPage`. Custom views must be placed where view engines normally look for them (typically `Views\`).
 
 The model type is `MarkdownWeb.GeneratedPage`.
+
+To get the generated table of contents (using headings), use `@Model.GetPartOrDefault("TableOfContents")`.
 
 ### HTML files
 
