@@ -20,8 +20,8 @@
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
 
-    <PackageReleaseNotes>Better conflict handling.</PackageReleaseNotes>
-    <version>1.0.3</version>
+    <PackageReleaseNotes>Anyone here?.</PackageReleaseNotes>
+    <version>1.0.4</version>
   </PropertyGroup>
 
   <ItemGroup>
