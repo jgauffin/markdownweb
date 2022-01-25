@@ -9,7 +9,7 @@ namespace MarkdownWeb.Git
     public class GitStorageConfiguration
     {
         /// <summary>
-        ///     Creates a new isntance of <see cref="GitStorageConfiguration" />
+        ///     Creates a new instance of <see cref="GitStorageConfiguration" />
         /// </summary>
         public GitStorageConfiguration()
         {

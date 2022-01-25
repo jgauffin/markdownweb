@@ -54,7 +54,7 @@ namespace MarkdownWeb
             return ParseString(pageToRender, text).Body;
         }
 
-        public HtmlPage ParseString(string websiteUrl, string document)
+        public GeneratedPage ParseString(string websiteUrl, string document)
         {
             var reference = _urlPathConverter.MapUrlToWikiPath(websiteUrl);
             return ParseString(reference, document);
@@ -66,7 +66,7 @@ namespace MarkdownWeb
         /// <param name="pageReference">Path to the page in your web site</param>
         /// <param name="document">Markdown document</param>
         /// <returns>Generated page</returns>
-        public HtmlPage ParseString(PageReference pageReference, string document)
+        public GeneratedPage ParseString(PageReference pageReference, string document)
         {
             if (pageReference == null) throw new ArgumentNullException("pageReference");
             if (document == null) throw new ArgumentNullException("document");
@@ -78,7 +78,7 @@ namespace MarkdownWeb
         /// </summary>
         /// <param name="websiteUrl">Must start with the sub path that the wiki is located in.</param>
         /// <returns></returns>
-        public HtmlPage GenerateIndex(string websiteUrl)
+        public GeneratedPage GenerateIndex(string websiteUrl)
         {
             var wikiPagePath = _urlPathConverter.MapUrlToWikiPath(websiteUrl);
             var pages = _repository.GetAllPages(wikiPagePath.FriendlyWikiUrl);
@@ -93,7 +93,7 @@ namespace MarkdownWeb
             }
             body.AppendLine("</ul>");
 
-            return new HtmlPage
+            return new GeneratedPage
             {
                 Body = body.ToString(),
                 Title = "Page list",
@@ -130,7 +130,7 @@ namespace MarkdownWeb
             body.AppendLine("</li>");
         }
 
-        public HtmlPage ParseUrl(string url)
+        public GeneratedPage ParseUrl(string url)
         {
             var wikiPagePath = _urlPathConverter.MapUrlToWikiPath(url);
             var page = wikiPagePath == null
@@ -182,7 +182,7 @@ namespace MarkdownWeb
                 }
                 body.AppendLine("</ul>");
 
-                return new HtmlPage
+                return new GeneratedPage
                 {
                     Body = body.ToString(),
                     Title = "Page list",
@@ -191,7 +191,7 @@ namespace MarkdownWeb
             }
 
             var pagesUrl = _urlPathConverter.ToWebUrl("/pages/");
-            return new HtmlPage
+            return new GeneratedPage
             {
 
                 Body =
@@ -277,7 +277,7 @@ namespace MarkdownWeb
             return pages;
         }
 
-        private HtmlPage Parse(PageReference pageReference, string markdown)
+        private GeneratedPage Parse(PageReference pageReference, string markdown)
         {
             if (pageReference == null) throw new ArgumentNullException(nameof(pageReference));
             if (markdown == null) throw new ArgumentNullException(nameof(markdown));
@@ -304,7 +304,7 @@ namespace MarkdownWeb
             return page;
         }
 
-        private HtmlPage PreProcessMarkdown(string markdown)
+        private GeneratedPage PreProcessMarkdown(string markdown)
         {
             var textReader = new StringReader(markdown);
             textReader.SkipEmptyLines();
@@ -352,7 +352,7 @@ namespace MarkdownWeb
                 headers.Add(key, value);
             }
 
-            return new HtmlPage
+            return new GeneratedPage
             {
                 Body = $"{articleAbstract}\r\n\r\n{articleBody}",
                 Title = heading,

@@ -6,17 +6,18 @@ using Microsoft.Extensions.Hosting;
 namespace MarkdownWeb.AspNetCore
 {
     /// <summary>
-    /// Options for <see cref="MarkdownWebMiddleware"/>.
+    ///     Options for <see cref="MarkdownWebMiddleware" />.
     /// </summary>
     public class MarkdownWebMiddlewareOptions
     {
-        private PathString _path = "/documentation/";
-
         /// <summary>
         ///     Physical location of files, relative to the web site root.
         /// </summary>
         public string DocumentationDirectory { get; set; }
 
+        /// <summary>
+        ///     Callback to get error logs if something fails.
+        /// </summary>
         public Action<string, Exception> ErrorLog { get; set; }
 
         /// <summary>
@@ -37,17 +38,28 @@ namespace MarkdownWeb.AspNetCore
         public string GitSubFolder { get; set; }
 
         /// <summary>
-        ///     HTML page to use as layout for the wiki pages.
+        ///     Page to use as layout for the wiki pages.
         /// </summary>
         /// <remarks>
         ///     <para>
-        ///         Must contain a <c>{Wiki}</c> tag, optional tags are "{Title}", "{Abstract}" and "{TableOfContents}".
+        ///         It looks for "Views\Shared\Wiki.cshtml" per default, but can be any view supported page or a plain HTML page.
         ///     </para>
         ///     <para>
-        ///         Relative path from <see cref="IHostEnvironment.ContentRootPath" /> (which typically is the wwwroot folder).
+        ///         For plain HTML pages, it must contain a <c>{Body}</c> tag, optional tags are "{Title}", "{Abstract}" and
+        ///         "{TableOfContents}".
+        ///     </para>
+        ///     <para>
+        ///         For HTML, the path is relative to <see cref="IHostEnvironment.ContentRootPath" /> (which typically is the
+        ///         wwwroot folder), for view pages,
+        ///         the file must be placed where the view engine normally looks for files.
         ///     </para>
         /// </remarks>
-        public string LayoutPage { get; set; } = "/Shared/MarkdownWeb.html";
+        public string LayoutPage { get; set; } = "/Views/Shared/Wiki.cshtml";
+
+        /// <summary>
+        ///     Repository used to load the wiki files.
+        /// </summary>
+        public IPageRepository Repository { get; set; }
 
         /// <summary>
         ///     Path (url path) to serve the wiki from.
@@ -55,18 +67,6 @@ namespace MarkdownWeb.AspNetCore
         /// <example>
         ///     "/documentation/"
         /// </example>
-        public PathString Path
-        {
-            get => _path;
-            set
-            {
-                _path = value;
-            }
-        }
-
-        /// <summary>
-        /// Repository used to load the wiki files.
-        /// </summary>
-        public IPageRepository Repository { get; set; }
+        public PathString WebPath { get; set; } = "/documentation/";
     }
 }

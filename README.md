@@ -28,13 +28,6 @@ If you implement your repository you can also store page revisions (to get a com
 
     install-package markdownweb
 	
-**ASP.NET Core template**
-
-Generates a controller, a razor view and sample documentation.
-
-    install-package markdownweb.aspnetcore
-
-	
 # AspNet Core installation
 
 Install the ASP.NET Core package: `markdownweb.aspnetcore`.
@@ -62,9 +55,21 @@ That's it.
 
 ## Customizing
 
-By default, MarkdownWeb looks for a HTML template named `markdownweb.html` in your `wwwroot/shared` folder. You can override that in options.
+MarkdownWeb supports for view engine files and plain HTML.
 
-The HTML template must contain a tag named `{MarkdownWeb}` which will be replaced with the Markdown generated HTML. You can also add a `{TableOfContents}`, `{Title}` and `{Abstract}`
+### View engine files
+
+MarkdownWeb looks for "Views\Shared\Wiki.cshtml" per default, change it using `options.LayoutPage`.
+
+View engine files, it must be placed where view engines normally look for it (typically `Views\`). By default, MarkdownWeb tries to find a view named `Views\Shared\Wiki.cshtml`.
+
+The model type is `MarkdownWeb.GeneratedPage`.
+
+### HTML files
+
+The page path is relative to the content root (i.e. root folder).
+
+The template must contain a tag named `{Body}` which will be replaced with the Markdown generated HTML. You can also add the tags `{TableOfContents}`, `{Title}` and `{Abstract}`
 
 # Manual installation
 	

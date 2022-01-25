@@ -8,29 +8,42 @@ using MarkdownWeb.Storage;
 using MarkdownWeb.Storage.Files;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.StaticFiles;
 
 namespace MarkdownWeb.AspNetCore
 {
     /// <summary>
-    /// Serves markdown files from a specific url.
+    ///     Serves markdown files from a specific url.
     /// </summary>
     public class MarkdownWebMiddleware
     {
         private static IPageRepository _repository;
+        private static readonly RouteData EmptyRouteData = new RouteData();
+        private static readonly ActionDescriptor EmptyActionDescriptor = new ActionDescriptor();
         private readonly string _docDirectory;
+        private readonly IWebHostEnvironment _environment;
         private readonly RequestDelegate _next;
         private readonly MarkdownWebMiddlewareOptions _options;
-        private readonly IWebHostEnvironment _environment;
-        private readonly string _rootDirectory;
         private readonly PageService _pageService;
+        private readonly string _rootDirectory;
+        private readonly IActionResultExecutor<ViewResult> _viewResultExecutor;
 
-        public MarkdownWebMiddleware(RequestDelegate next, MarkdownWebMiddlewareOptions options,
-            IWebHostEnvironment environment)
+        public MarkdownWebMiddleware(
+            RequestDelegate next,
+            MarkdownWebMiddlewareOptions options,
+            IWebHostEnvironment environment,
+            IActionResultExecutor<ViewResult> viewResultExecutor)
         {
             _next = next;
             _options = options;
             _environment = environment;
+            _viewResultExecutor = viewResultExecutor;
             _rootDirectory = Path.Combine(environment.ContentRootPath, options.DocumentationDirectory);
             _docDirectory = string.IsNullOrEmpty(options.GitSubFolder)
                 ? _rootDirectory
@@ -41,28 +54,12 @@ namespace MarkdownWeb.AspNetCore
 
         public async Task InvokeAsync(HttpContext context)
         {
-            if (!context.Request.Path.StartsWithSegments(_options.Path))
+            if (!context.Request.Path.StartsWithSegments(_options.WebPath))
             {
                 await _next(context);
                 return;
             }
 
-
-            string layout;
-            var layoutInfo = _environment.WebRootFileProvider.GetFileInfo(_options.LayoutPage);
-            if (!layoutInfo.Exists)
-            {
-                throw new InvalidOperationException("Failed to find the layout file for markdown web: '" +
-                                                    _options.LayoutPage +
-                                                    "'. Configure options.LayoutPage so that it points on a HTML file in your wwwroot directory.");
-            }
-            using (var stream = layoutInfo.CreateReadStream())
-            {
-                var sr = new StreamReader(stream);
-                layout = await sr.ReadToEndAsync();
-            }
-
-            //var pathWithoutDocPrefix = context.Request.Path.Value.Remove(0, _options.Path.Value.Length);
             var path = context.Request.Path.ToString();
             if (!path.Contains(".") && !path.EndsWith("/"))
             {
@@ -75,14 +72,14 @@ namespace MarkdownWeb.AspNetCore
                 return;
             }
 
-            var page = LoadPage(path);
-            context.Response.ContentType = "text/html";
-            var html = layout
-                .Replace("{Wiki}", page.Body)
-                .Replace("{Title}", page.Title)
-                .Replace("{TableOfContents}", page.Parts.FirstOrDefault()?.Body ?? "");
-
-            await context.Response.WriteAsync(html);
+            if (_options.LayoutPage.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+            {
+                await RenderHtmlFile(path, context.Response);
+            }
+            else
+            {
+                await RenderViewFile(context, path);
+            }
         }
 
         private PageService CreatePageService()
@@ -91,7 +88,7 @@ namespace MarkdownWeb.AspNetCore
                 ? new FileBasedRepository(_options.DocumentationDirectory)
                 : CreateRepository();
 
-            var urlConverter = new UrlConverter(_options.Path, (IPageSource)pageRepository);
+            var urlConverter = new UrlConverter(_options.WebPath, (IPageSource)pageRepository);
             var pageService = new PageService(pageRepository, urlConverter);
             return pageService;
         }
@@ -128,35 +125,79 @@ namespace MarkdownWeb.AspNetCore
             return _repository;
         }
 
-        private HtmlPage LoadPage(string path)
+        private GeneratedPage LoadPage(string path)
         {
-            var pagesPath = _options.Path.Add("/pages/");
+            var pagesPath = _options.WebPath.Add("/pages/");
             if (pagesPath.Equals(new PathString(path)))
             {
-                return _pageService.GenerateIndex(_options.Path);
+                return _pageService.GenerateIndex(_options.WebPath);
             }
 
-            path = Path.Combine(_options.Path, path);
+            path = Path.Combine(_options.WebPath, path);
             try
             {
                 return _pageService.ParseUrl(path);
             }
             catch (DirectoryNotFoundException ex)
             {
-                _options.ErrorLog(path, ex);
-                return new HtmlPage
+                _options.ErrorLog?.Invoke(path, ex);
+                return new GeneratedPage
                 {
                     Body = "<h1>Page not found</h1><p>Oops, we could not find the page that you where looking for.</p>"
                 };
             }
             catch (FileNotFoundException ex)
             {
-                _options.ErrorLog(path, ex);
-                return new HtmlPage
+                _options.ErrorLog?.Invoke(path, ex);
+                return new GeneratedPage
                 {
                     Body = "<h1>Page not found</h1><p>Oops, we could not find the page that you where looking for.</p>"
                 };
             }
+        }
+
+        private async Task RenderHtmlFile(string webPath, HttpResponse response)
+        {
+            string layout;
+            var layoutInfo = _environment.WebRootFileProvider.GetFileInfo(_options.LayoutPage);
+            if (!layoutInfo.Exists)
+            {
+                throw new InvalidOperationException("Failed to find the layout file for markdown web: '" +
+                                                    _options.LayoutPage +
+                                                    "'. Configure options.LayoutPage so that it points on a HTML file in your wwwroot directory.");
+            }
+
+            using (var stream = layoutInfo.CreateReadStream())
+            {
+                var sr = new StreamReader(stream);
+                layout = await sr.ReadToEndAsync();
+            }
+
+            var page = LoadPage(webPath);
+            response.ContentType = "text/html";
+            var html = layout
+                .Replace("{Wiki}", page.Body)
+                .Replace("{Title}", page.Title)
+                .Replace("{TableOfContents}", page.Parts.FirstOrDefault()?.Body ?? "");
+            response.ContentType = "text/html";
+            await response.WriteAsync(html);
+        }
+
+        private async Task RenderViewFile(HttpContext context, string path)
+        {
+            var page = LoadPage(path);
+            var result = new ViewResult
+            {
+                ViewName = _options.LayoutPage,
+                ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider(),
+                    new ModelStateDictionary())
+                {
+                    Model = page
+                }
+            };
+            var routeData = context.GetRouteData() ?? EmptyRouteData;
+            var actionContext = new ActionContext(context, routeData, EmptyActionDescriptor);
+            await _viewResultExecutor.ExecuteAsync(actionContext, result);
         }
 
         private async Task ServeImages(string wikiPath, string imageUrl, HttpResponse response)

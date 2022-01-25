@@ -17,6 +17,9 @@ namespace MarkdownWeb.Demo
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddRazorPages()
+                .AddRazorRuntimeCompilation();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -30,12 +33,14 @@ namespace MarkdownWeb.Demo
             app.UseRouting();
             app.UseMarkdownWeb(options =>
             {
-                options.Path = new PathString("/doc");
+                options.WebPath = new PathString("/doc");
                 options.DocumentationDirectory = @"D:\src\1tcompany\coderr\OSS\Coderr.Documentation\docs";
 
                 // To use a git repos:
-                options.GitRepositoryUrl = "https://github.com/your/repository";
-                options.GitSubFolder = @"docs\";
+                //options.GitRepositoryUrl = "https://github.com/coderr";
+                //options.GitSubFolder = @"docs\";
+
+                options.LayoutPage = "/Wiki.cshtml";
             });
             app.UseStaticFiles();
 
