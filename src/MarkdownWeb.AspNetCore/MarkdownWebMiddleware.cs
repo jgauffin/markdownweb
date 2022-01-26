@@ -92,7 +92,7 @@ namespace MarkdownWeb.AspNetCore
 
             var urlConverter = new UrlConverter(_options.WebPath, (IPageSource)pageRepository);
             var pageService = new PageService(pageRepository, urlConverter);
-            _options.PageServiceOptions?.Invoke(_pageService.Configuration);
+            _options.PageServiceSettings?.Invoke(pageService.Configuration);
             return pageService;
         }
 
@@ -115,7 +115,7 @@ namespace MarkdownWeb.AspNetCore
                 DeleteAndFetchOnErrors = true,
                 UpdateInBackground = true
             };
-            _options.GitOptions?.Invoke(settings);
+            _options.GitSettings?.Invoke(settings);
 
             var gitRepos = new GitPageRepository(settings)
             {

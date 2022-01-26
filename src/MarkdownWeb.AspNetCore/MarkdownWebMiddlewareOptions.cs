@@ -73,11 +73,21 @@ namespace MarkdownWeb.AspNetCore
         /// <summary>
         /// Used to customize the git configuration.
         /// </summary>
-        public Action<GitSettings> GitOptions { get; set; }
+        public void GitOptions(Action<GitSettings> settings)
+        {
+            GitSettings = settings;
+        }
+
+        internal Action<GitSettings> GitSettings;
 
         /// <summary>
         /// Use to customize how pages are generated.
         /// </summary>
-        public Action<PageServiceConfiguration> PageServiceOptions { get; set; }
+        public void PageServiceOptions(Action<PageServiceConfiguration> settings)
+        {
+            PageServiceSettings = settings;
+        }
+
+        internal Action<PageServiceConfiguration> PageServiceSettings;
     }
 }
