@@ -49,6 +49,8 @@ namespace MarkdownWeb.AspNetCore
                 ? _rootDirectory
                 : Path.Combine(_rootDirectory, options.GitSubFolder);
 
+            EmptyRouteData.Values.Add("Controller", "Documentation");
+            EmptyRouteData.Values.Add("Action", "Index");
             _pageService = CreatePageService();
         }
 
@@ -86,21 +88,22 @@ namespace MarkdownWeb.AspNetCore
         {
             var pageRepository = string.IsNullOrEmpty(_options.GitRepositoryUrl)
                 ? new FileBasedRepository(_options.DocumentationDirectory)
-                : CreateRepository();
+                : CreateGitRepository();
 
             var urlConverter = new UrlConverter(_options.WebPath, (IPageSource)pageRepository);
             var pageService = new PageService(pageRepository, urlConverter);
+            _options.PageServiceOptions?.Invoke(_pageService.Configuration);
             return pageService;
         }
 
-        private IPageRepository CreateRepository()
+        private IPageRepository CreateGitRepository()
         {
             if (_repository != null)
             {
                 return _repository;
             }
 
-            var settings = new GitStorageConfiguration
+            var settings = new GitSettings
             {
                 // directory where we should store the fetched files.
                 FetchDirectory = _rootDirectory,
@@ -108,15 +111,17 @@ namespace MarkdownWeb.AspNetCore
                 //Folder in the git repos where the documentation is stored
                 DocumentationDirectory = _docDirectory,
                 RepositoryUri = new Uri(_options.GitRepositoryUrl),
-                UpdateInterval = TimeSpan.FromMinutes(5)
-            };
-
-            _repository = new GitPageRepository(settings)
-            {
-                ErrorLogTask = (level, errMsg, exception) => { _options.ErrorLog?.Invoke(errMsg, exception); },
+                UpdateInterval = TimeSpan.FromMinutes(5),
                 DeleteAndFetchOnErrors = true,
                 UpdateInBackground = true
             };
+            _options.GitOptions?.Invoke(settings);
+
+            var gitRepos = new GitPageRepository(settings)
+            {
+                ErrorLogTask = (level, errMsg, exception) => { _options.ErrorLog?.Invoke(errMsg, exception); },
+            };
+            _repository = gitRepos;
             return _repository;
         }
 

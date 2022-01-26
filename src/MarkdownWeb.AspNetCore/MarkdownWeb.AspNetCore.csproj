@@ -20,8 +20,8 @@
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
 
-    <PackageReleaseNotes>Anyone here?.</PackageReleaseNotes>
-    <version>1.0.4</version>
+    <PackageReleaseNotes>Support for directory filters</PackageReleaseNotes>
+    <version>1.0.5</version>
   </PropertyGroup>
 
   <ItemGroup>

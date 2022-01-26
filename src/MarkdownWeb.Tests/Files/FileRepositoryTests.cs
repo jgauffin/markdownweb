@@ -16,7 +16,7 @@ namespace MarkdownWeb.Tests.Files
         {
             var sut = new FileBasedRepository($"{Environment.CurrentDirectory}\\TestDocs\\");
 
-            var pages = sut.GetAllPagesAsLinks().ToList();
+            var pages = sut.GetAllPagesAsLinks(x => true).ToList();
 
             pages.Should().Contain("/withlink.md");
             pages.Should().Contain("/FolderTest/subfolder/twodoc.md");
@@ -27,12 +27,12 @@ namespace MarkdownWeb.Tests.Files
         public void Test2()
         {
             var sut = new FileBasedRepository($"{Environment.CurrentDirectory}\\TestDocs\\");
-            
-            var pages = sut.GetAllPages("").ToList();
+
+            var pages = sut.GetAllPages("", s => true).ToList();
 
             pages.Should().Contain(x => x.WikiUrl == "/withlink.md");
             //pages.Should().Contain("/FolderTest/subfolder/twodoc.md");
         }
-        
+
     }
 }

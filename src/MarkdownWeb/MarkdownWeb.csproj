@@ -18,8 +18,8 @@
     <Product>MarkdownWeb ($(TargetFramework))</Product>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
-    <PackageReleaseNotes>Renamed model.</PackageReleaseNotes>
-    <version>1.5.2</version>
+    <PackageReleaseNotes>Moved all settings to the configuration classes and added a directory filter.</PackageReleaseNotes>
+    <version>1.5.3</version>
   </PropertyGroup>
 
   <ItemGroup>

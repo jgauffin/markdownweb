@@ -6,12 +6,12 @@ namespace MarkdownWeb.Git
     /// <summary>
     ///     Configuration for <see cref="GitPageRepository" />
     /// </summary>
-    public class GitStorageConfiguration
+    public class GitSettings
     {
         /// <summary>
-        ///     Creates a new instance of <see cref="GitStorageConfiguration" />
+        ///     Creates a new instance of <see cref="GitSettings" />
         /// </summary>
-        public GitStorageConfiguration()
+        public GitSettings()
         {
             DocumentationDirectory = @"doc\";
         }
@@ -20,6 +20,15 @@ namespace MarkdownWeb.Git
         ///     Credentials for the repository.
         /// </summary>
         public Credentials Credentials { get; set; }
+
+
+        /// <summary>
+        ///     Start from scratch if we can't get the repository and reset hard did not work.
+        /// </summary>
+        /// <value>
+        ///     Default is <c>true</c>
+        /// </value>
+        public bool DeleteAndFetchOnErrors { get; set; }
 
         /// <summary>
         ///     Directory within <see cref="FetchDirectory" />, typically ends with "src\" or "doc\"
@@ -33,6 +42,11 @@ namespace MarkdownWeb.Git
         public string DocumentationDirectory { get; set; }
 
         /// <summary>
+        ///     Invoked once a pull/merge have been completed.
+        /// </summary>
+        public Action DownloadCompleted { get; set; }
+
+        /// <summary>
         ///     Directory used for git fetch
         /// </summary>
         public string FetchDirectory { get; set; }
@@ -41,6 +55,21 @@ namespace MarkdownWeb.Git
         ///     HTTPS or SSH url for your git repository
         /// </summary>
         public Uri RepositoryUri { get; set; }
+
+        /// <summary>
+        ///     Do a <c>reset --hard</c> if there are conflicts on pull. Default true;
+        /// </summary>
+        public bool ResetOnConflicts { get; set; } = true;
+
+        /// <summary>
+        ///     Do all GIT operations in a background task (to not slow down the website).
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///         Default is <c>true</c>.
+        ///     </para>
+        /// </remarks>
+        public bool UpdateInBackground { get; set; } = true;
 
         /// <summary>
         ///     How often we should check for updates (when someone requests the documentation)

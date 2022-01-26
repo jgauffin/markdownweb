@@ -86,7 +86,7 @@ namespace MarkdownWeb.Tests
             var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
 
             var sut = new PageService(repository, pathConverter);
-            sut.PostFilters.Add(new AnchorHeadings());
+            sut.Configuration.PostFilters.Add(new AnchorHeadings());
             var actual = sut.ParseUrl("/intranet/FolderTest/other.md");
 
             actual.Body.Should()
@@ -337,6 +337,22 @@ for (int i = 0; i < 10; ++i)
 
             actual.First().Url.Should().Be("/intranet/");
             actual[1].Url.Should().Be("/intranet/page/");
+        }
+
+        [Fact]
+        public void ListAllPages_should_be_able_To_filter()
+        {
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/intranet/", pageSource);
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            sut.Configuration.DirectoryFilter = directory => !directory.Contains("FolderTest");
+            var actual = sut.GetPages();
+
+            actual.First().Url.Should().Be("/intranet/");
+            actual.Should().NotContain(x => x.Url.Contains("FolderTest"));
         }
 
         [Fact]

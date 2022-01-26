@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace MarkdownWeb.Storage
 {
@@ -32,13 +33,13 @@ namespace MarkdownWeb.Storage
         /// List all pages (as links from root)
         /// </summary>
         /// <returns></returns>
-        IEnumerable<string> GetAllPagesAsLinks();
+        IEnumerable<string> GetAllPagesAsLinks(Func<string, bool> pathFilter);
 
         /// <summary>
         /// Recursively scan all folders and generate a list of all pages.
         /// </summary>
         /// <returns></returns>
-        IReadOnlyList<PageReferenceWithChildren> GetAllPages(string wikiPath);
+        IReadOnlyList<PageReferenceWithChildren> GetAllPages(string wikiPath, Func<string, bool> pathFilter);
 
         /// <summary>
         ///     Check if page exists

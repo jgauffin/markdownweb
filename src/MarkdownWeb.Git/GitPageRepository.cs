@@ -16,7 +16,7 @@ namespace MarkdownWeb.Git
     /// </summary>
     public class GitPageRepository : IPageRepository, IDisposable, IPageSource
     {
-        private readonly GitStorageConfiguration _config;
+        private readonly GitSettings _config;
         private readonly FileBasedRepository _fileBasedRepository;
         private readonly Repository _repos;
         private readonly object _syncLock = new object();
@@ -26,10 +26,9 @@ namespace MarkdownWeb.Git
         /// Creates a new instance of <see cref="GitPageRepository"/>.
         /// </summary>
         /// <param name="config">Configuration options for GIT.</param>
-        public GitPageRepository(GitStorageConfiguration config)
+        public GitPageRepository(GitSettings config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            UpdateInBackground = true;
 
             // First validate it.
             if (!Repository.IsValid(config.FetchDirectory) && Directory.Exists(config.FetchDirectory))
@@ -56,38 +55,13 @@ namespace MarkdownWeb.Git
             _fileBasedRepository = new FileBasedRepository(config.DocumentationDirectory);
         }
 
-        /// <summary>
-        ///     Start from scratch if we can't get the repository (conflicts etc)
-        /// </summary>
-        /// <value>
-        ///     Default is <c>true</c>
-        /// </value>
-        public bool DeleteAndFetchOnErrors { get; set; }
-
-        /// <summary>
-        ///     Invoked once a pull/merge have been completed.
-        /// </summary>
-        public Action DownloadCompleted { get; set; }
 
         /// <summary>
         ///     Use this to be able to log errors that happen when the repository is fetched in the background.
         /// </summary>
         public Action<LogLevel, string, Exception> ErrorLogTask { get; set; }
 
-        /// <summary>
-        ///     Do all GIT operations in a background task (to not slow down the website).
-        /// </summary>
-        /// <remarks>
-        ///     <para>
-        ///         Default is <c>true</c>.
-        ///     </para>
-        /// </remarks>
-        public bool UpdateInBackground { get; set; }
 
-        /// <summary>
-        /// Do a <c>reset --hard</c> if there are conflicts on pull. Default true;
-        /// </summary>
-        public bool ResetOnConflicts { get; set; } = true;
 
         private string CacheFile
         {
@@ -125,22 +99,16 @@ namespace MarkdownWeb.Git
             return _fileBasedRepository.GetRevisions(pageReference);
         }
 
-        public IEnumerable<string> GetAllPagesAsLinks()
+        public IEnumerable<string> GetAllPagesAsLinks(Func<string, bool> pathFilter)
         {
             EnsureCache();
-            return _fileBasedRepository.GetAllPagesAsLinks();
+            return _fileBasedRepository.GetAllPagesAsLinks(pathFilter);
         }
 
-        public IReadOnlyList<PageReferenceWithChildren> GetAllPages(string wikiPath)
+        public IReadOnlyList<PageReferenceWithChildren> GetAllPages(string wikiPath, Func<string, bool> pathFilter)
         {
             EnsureCache();
-            return _fileBasedRepository.GetAllPages(wikiPath);
-        }
-
-        public IReadOnlyList<PageReferenceWithChildren> GetAllPages()
-        {
-            EnsureCache();
-            return _fileBasedRepository.GetAllPages("/");
+            return _fileBasedRepository.GetAllPages(wikiPath, pathFilter);
         }
 
         /// <inheritdoc />
@@ -178,7 +146,7 @@ namespace MarkdownWeb.Git
                     return;
 
                 //do it in the background
-                if (UpdateInBackground)
+                if (_config.UpdateInBackground)
                     Task.Run(() => { SyncRepository(cacheFile, true); }
                     ).ContinueWith(x => ErrorLogTask?.Invoke(LogLevel.Debug, "Pull completed", null));
                 else
@@ -208,7 +176,7 @@ namespace MarkdownWeb.Git
                 }
                 catch (CheckoutConflictException ex)
                 {
-                    if (!ResetOnConflicts)
+                    if (!_config.ResetOnConflicts)
                         throw;
 
                     ErrorLogTask?.Invoke(LogLevel.Warning, "Got conflict, doing a reset hard.", ex);
@@ -218,11 +186,11 @@ namespace MarkdownWeb.Git
                 //var originMaster=_repos.Branches["origin/master"];
                 //_repos.Merge(originMaster, user, new MergeOptions(){CommitOnSuccess = true})
                 File.WriteAllText(cacheFile, "Now");
-                DownloadCompleted?.Invoke();
+                _config.DownloadCompleted?.Invoke();
             }
             catch (Exception ex)
             {
-                if (DeleteAndFetchOnErrors && isFirstAttempt)
+                if (_config.DeleteAndFetchOnErrors && isFirstAttempt)
                 {
                     ErrorLogTask?.Invoke(LogLevel.Warning, "Failed to pull from origin, deleting and restarting.", ex);
                     Directory.Delete(_config.FetchDirectory, true);

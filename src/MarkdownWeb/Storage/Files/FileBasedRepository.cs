@@ -70,11 +70,11 @@ namespace MarkdownWeb.Storage.Files
             };
         }
 
-        public IEnumerable<string> GetAllPagesAsLinks()
+        public IEnumerable<string> GetAllPagesAsLinks(Func<string, bool> pathFilter)
         {
             var directory = _rootFilePath.EndsWith("/") ? _rootFilePath + "/" : _rootFilePath;
-            List<string> items = new List<string>();
-            ScanDirectoryForFiles(directory, directory, items);
+            var items = new List<string>();
+            ScanDirectoryForFiles(directory, directory, items, pathFilter);
             return items;
         }
 
@@ -82,8 +82,9 @@ namespace MarkdownWeb.Storage.Files
         /// List all pages that exist under a specific path.
         /// </summary>
         /// <param name="startWikiPath">Start path, "" or "/" = root.</param>
+        /// <param name="pathFilter"></param>
         /// <returns></returns>
-        public IReadOnlyList<PageReferenceWithChildren> GetAllPages(string startWikiPath)
+        public IReadOnlyList<PageReferenceWithChildren> GetAllPages(string startWikiPath, Func<string, bool> pathFilter)
         {
             if (startWikiPath == null)
             {
@@ -94,7 +95,7 @@ namespace MarkdownWeb.Storage.Files
             startWikiPath = startWikiPath.TrimStart('/');
             var path = _rootFilePath + startWikiPath.Replace('/', '\\');
 
-            ScanDirectory(_rootFilePath, path, node);
+            ScanDirectory(_rootFilePath, path, node, pathFilter);
             foreach (var child in node.Children)
             {
                 AdjustFriendlyUrls(child);
@@ -173,7 +174,7 @@ namespace MarkdownWeb.Storage.Files
         /// <param name="rootDirectory"></param>
         /// <param name="directoryToScan"></param>
         /// <param name="parent"></param>
-        private void ScanDirectory(string rootDirectory, string directoryToScan, PageReferenceWithChildren parent)
+        private void ScanDirectory(string rootDirectory, string directoryToScan, PageReferenceWithChildren parent, Func<string, bool> pathFilter)
         {
             var ourPath = "/" + directoryToScan.Remove(0, rootDirectory.Length).Replace('\\', '/');
             if (ourPath.Length > 2)
@@ -209,11 +210,20 @@ namespace MarkdownWeb.Storage.Files
             var dirs = Directory.GetDirectories(directoryToScan);
             foreach (var dir in dirs)
             {
-                ScanDirectory(rootDirectory, dir, node);
+                if (!pathFilter(dir))
+                {
+                    continue;
+                }
+
+                ScanDirectory(rootDirectory, dir, node, pathFilter);
             }
         }
 
-        private void ScanDirectoryForFiles(string rootDirectory, string directoryToScan, List<string> items)
+        private void ScanDirectoryForFiles(
+            string rootDirectory, 
+            string directoryToScan, 
+            ICollection<string> items,
+            Func<string, bool> pathFilter)
         {
             var files = Directory.GetFiles(directoryToScan, "*.md");
             foreach (var file in files)
@@ -225,7 +235,12 @@ namespace MarkdownWeb.Storage.Files
             var dirs = Directory.GetDirectories(directoryToScan);
             foreach (var dir in dirs)
             {
-                ScanDirectoryForFiles(rootDirectory, dir, items);
+                if (!pathFilter(dir))
+                {
+                    continue;
+                }
+
+                ScanDirectoryForFiles(rootDirectory, dir, items, pathFilter);
             }
         }
     }

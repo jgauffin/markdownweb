@@ -42,7 +42,7 @@ The result code is like below; it is missing a th closing tag and merge the rest
             var repository = new FileBasedRepository(Environment.CurrentDirectory);
 
             var sut = new PageService(repository, pathConverter);
-            sut.PostFilters.Add(new AnchorHeadings());
+            sut.Configuration.PostFilters.Add(new AnchorHeadings());
             var actual = sut.ParseString(new PageReference("/", "/index.md"), markdown);
 
             actual.Body.Should().Contain("<h3 id=\"n3-ivfragment-secondaire-mvc5\">N3 IvFragment Secondaire MVC5</h3>");

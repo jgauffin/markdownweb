@@ -10,7 +10,7 @@ namespace MarkdownWeb.Git.Tests
         {
             if (!Directory.Exists(_path))
                 Directory.CreateDirectory(_path);
-            _config = new GitStorageConfiguration
+            _config = new GitSettings
             {
                 FetchDirectory = _path,
                 RepositoryUri = new Uri("https://github.com/coderrapp/codeRR.Documentation.git")
@@ -18,12 +18,13 @@ namespace MarkdownWeb.Git.Tests
         }
 
         private readonly string _path = @"C:\Temp\MarkdownSharp\Git\";
-        private readonly GitStorageConfiguration _config;
+        private readonly GitSettings _config;
 
         [Fact]
         public void Should_merge_if_not_exist()
         {
-            var repos = new GitPageRepository(_config) {UpdateInBackground = false};
+            _config.UpdateInBackground = false;
+            var repos = new GitPageRepository(_config);
             repos.Get(new PageReference("/", "/index.md"));
         }
     }

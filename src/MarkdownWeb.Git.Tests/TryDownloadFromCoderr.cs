@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
-using LibGit2Sharp;
-using LibGit2Sharp.Handlers;
 using Xunit;
 
 namespace MarkdownWeb.Git.Tests
@@ -28,16 +22,16 @@ namespace MarkdownWeb.Git.Tests
         {
             var waiter = new ManualResetEvent(false);
             var pageReference = new PageReference("/", "/index.md");
-            var settings = new GitStorageConfiguration
+            var settings = new GitSettings
             {
                 FetchDirectory = _path,
                 DocumentationDirectory = Path.Combine(_path, "docs"),
                 RepositoryUri = new Uri("https://github.com/coderrapp/coderr.Documentation.git"),
+                DownloadCompleted = () => waiter.Set()
             };
 
             using (var git = new GitPageRepository(settings))
             {
-                git.DownloadCompleted = () => waiter.Set();
                 git.Exists(pageReference);
                 waiter.WaitOne(5000).Should().BeTrue();
             }
@@ -49,18 +43,19 @@ namespace MarkdownWeb.Git.Tests
         {
             var waiter = new ManualResetEvent(false);
             var pageReference = new PageReference("/", "/index.md");
-            var settings = new GitStorageConfiguration
+            var settings = new GitSettings
             {
                 FetchDirectory = _path,
                 DocumentationDirectory = Path.Combine(_path, "docs"),
                 RepositoryUri = new Uri("https://github.com/coderrapp/coderr.Documentation.git"),
-                UpdateInterval = TimeSpan.FromMilliseconds(0)
+                UpdateInterval = TimeSpan.FromMilliseconds(0),
+                DownloadCompleted = () => waiter.Set()
             };
 
             using (var git = new GitPageRepository(settings))
             {
                 git.ErrorLogTask = (level, s, exception) => Console.WriteLine(exception);
-                git.DownloadCompleted = () => waiter.Set();
+                
                 git.Exists(pageReference);
                 waiter.WaitOne(5000).Should().BeTrue();
                 waiter.Reset();

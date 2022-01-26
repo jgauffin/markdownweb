@@ -1,4 +1,5 @@
 ﻿using System;
+using MarkdownWeb.Git;
 using MarkdownWeb.Storage;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
@@ -68,5 +69,15 @@ namespace MarkdownWeb.AspNetCore
         ///     "/documentation/"
         /// </example>
         public PathString WebPath { get; set; } = "/documentation/";
+
+        /// <summary>
+        /// Used to customize the git configuration.
+        /// </summary>
+        public Action<GitSettings> GitOptions { get; set; }
+
+        /// <summary>
+        /// Use to customize how pages are generated.
+        /// </summary>
+        public Action<PageServiceConfiguration> PageServiceOptions { get; set; }
     }
 }

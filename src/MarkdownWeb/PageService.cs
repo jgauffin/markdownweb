@@ -29,8 +29,6 @@ namespace MarkdownWeb
             _repository = repository;
             _urlPathConverter = urlPathConverter;
             _markdown = new MarkdownParser(_urlPathConverter, _repository);
-            PreFilters = new PreFilterCollection();
-            PostFilters = new PostFilterCollection();
             Configuration = new PageServiceConfiguration();
         }
 
@@ -39,15 +37,7 @@ namespace MarkdownWeb
         /// </summary>
         public PageServiceConfiguration Configuration { get; set; }
 
-        /// <summary>
-        ///     Used to process the generated HTML once it's been created by the markdown parser.
-        /// </summary>
-        public PostFilterCollection PostFilters { get; private set; }
 
-        /// <summary>
-        ///     Used to modify the text before it's given to the markdown parser.
-        /// </summary>
-        public PreFilterCollection PreFilters { get; private set; }
 
         string IMarkdownParser.Parse(PageReference pageToRender, string text)
         {
@@ -81,7 +71,7 @@ namespace MarkdownWeb
         public GeneratedPage GenerateIndex(string websiteUrl)
         {
             var wikiPagePath = _urlPathConverter.MapUrlToWikiPath(websiteUrl);
-            var pages = _repository.GetAllPages(wikiPagePath.FriendlyWikiUrl);
+            var pages = _repository.GetAllPages(wikiPagePath.FriendlyWikiUrl, Configuration.DirectoryFilter ?? (x => true));
             var body = new StringBuilder();
             body.AppendLine("<ul class=\"pagelist\">");
             foreach (var subPage in pages)
@@ -207,8 +197,8 @@ namespace MarkdownWeb
 
         public List<PageSummary> GetPages()
         {
-            List<PageSummary> pages = new List<PageSummary>();
-            var links = _repository.GetAllPagesAsLinks();
+            var pages = new List<PageSummary>();
+            var links = _repository.GetAllPagesAsLinks(Configuration.DirectoryFilter);
             foreach (var pageLink in links)
             {
                 var webUrl = _urlPathConverter.ToWebUrl(pageLink);
@@ -253,7 +243,7 @@ namespace MarkdownWeb
         public List<MissingPage> GetMissingPages()
         {
             List<MissingPage> pages = new List<MissingPage>();
-            var links = _repository.GetAllPagesAsLinks();
+            var links = _repository.GetAllPagesAsLinks(Configuration.DirectoryFilter);
             foreach (var pageLink in links)
             {
                 var url = _urlPathConverter.ToWebUrl(pageLink);
@@ -283,7 +273,7 @@ namespace MarkdownWeb
             if (markdown == null) throw new ArgumentNullException(nameof(markdown));
 
             var page = PreProcessMarkdown(markdown);
-            page.Body = PreFilters.Execute(this, pageReference, page.Body);
+            page.Body = Configuration.PreFilters.Execute(this, pageReference, page.Body);
             _markdown.DefaultCodeLanguage = Configuration.DefaultCodeLanguage;
             _markdown.MissingPageStyle = Configuration.MissingLinkStyle;
 
@@ -296,7 +286,7 @@ namespace MarkdownWeb
             page.Body = _markdown.Parse(context, page.Body);
 
             var postContext = new PostFilterContext(page.Body);
-            PostFilters.Execute(postContext);
+            Configuration.PostFilters.Execute(postContext);
             page.Body = postContext.HtmlToParse;
             page.Parts = postContext.GetParts();
             page.WikiPageReference = pageReference;
