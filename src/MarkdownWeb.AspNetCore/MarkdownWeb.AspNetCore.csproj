@@ -20,8 +20,8 @@
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
 
-    <PackageReleaseNotes>Support for directory filters</PackageReleaseNotes>
-    <version>1.0.5</version>
+    <PackageReleaseNotes>Corrected a bug that affected serving images.</PackageReleaseNotes>
+    <version>1.0.6</version>
   </PropertyGroup>
 
   <ItemGroup>

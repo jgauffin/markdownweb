@@ -215,7 +215,7 @@ namespace MarkdownWeb.AspNetCore
                 contentType = "application/octet-stream";
             }
 
-            var fullPath = Path.Combine(_rootDirectory, src.Replace("/", "\\"));
+            var fullPath = Path.Combine(_docDirectory, src.Replace("/", "\\"));
             response.ContentType = contentType;
             await using (var file = File.OpenRead(fullPath))
             {
