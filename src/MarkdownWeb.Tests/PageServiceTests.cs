@@ -24,6 +24,21 @@ namespace MarkdownWeb.Tests
 
             actual.Body.Should().Contain("/intranet/?image=/NoDoc/image.png");
         }
+
+        [Fact]
+        public void Should_support_missing_paths()
+        {
+            var url = "/documentation/coderr.client/";
+            var pageSource = Substitute.For<IPageSource>();
+            pageSource.PageExists(Arg.Any<PageReference>()).Returns(true);
+            var pathConverter = new UrlConverter("/documentation/", pageSource);
+            var repository = new FileBasedRepository(Environment.CurrentDirectory + "\\TestDocs\\");
+
+            var sut = new PageService(repository, pathConverter);
+            var actual = sut.ParseUrl(url);
+
+            actual.Body.Should().Contain("is missing");
+        }
         
         [Fact]
         public void parses_image_link_correctly_when_using_path_alias_for_document()

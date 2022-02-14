@@ -137,13 +137,9 @@ namespace MarkdownWeb
             var notFoundPath = _urlPathConverter.RemoveWebRoot(url).Trim('/');
             var pos = 0;
             var pages = new List<PageSummary>();
-            while (true)
+            while (pos != -1)
             {
                 var wikiPath = notFoundPath.Substring(pos);
-                if (pos == -1)
-                {
-                    break;
-                }
 
                 pages = allPages
                     .Where(x => x.PageReference.WikiUrl.IndexOf(wikiPath, StringComparison.OrdinalIgnoreCase) != -1)

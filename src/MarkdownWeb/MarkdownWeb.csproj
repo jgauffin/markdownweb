@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net461;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net50;netstandard2.1</TargetFrameworks>
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <GenerateDocumentationFile Condition=" '$(Configuration)' == 'Release' ">true</GenerateDocumentationFile>
     <DebugType>full</DebugType>
@@ -18,15 +18,12 @@
     <Product>MarkdownWeb ($(TargetFramework))</Product>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
-    <PackageReleaseNotes>Moved all settings to the configuration classes and added a directory filter.</PackageReleaseNotes>
-    <version>1.5.3</version>
+    <PackageReleaseNotes>Fixed a small issue with the page is missing.</PackageReleaseNotes>
+    <version>1.5.4</version>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Markdig" version="0.26.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="anglesharp">
       <Version>0.16.1</Version>
     </PackageReference>
