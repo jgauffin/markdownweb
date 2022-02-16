@@ -141,8 +141,9 @@ namespace MarkdownWeb.Git
             lock (_syncLock)
             {
                 var cacheFile = CacheFile;
-                if (File.Exists(cacheFile) &&
-                    DateTime.UtcNow.Subtract(File.GetLastWriteTimeUtc(cacheFile)) < _config.UpdateInterval)
+                var exists = File.Exists(cacheFile);
+                var diff = DateTime.UtcNow.Subtract(File.GetLastWriteTimeUtc(cacheFile));
+                if (exists && diff < _config.UpdateInterval)
                     return;
 
                 //do it in the background
@@ -160,15 +161,18 @@ namespace MarkdownWeb.Git
             {
                 ErrorLogTask?.Invoke(LogLevel.Info, "Attempting to pull form origin " + _config.RepositoryUri, null);
                 var user = new Signature("markdownweb", "info@markdownweb.com", DateTimeOffset.UtcNow);
-                var options = new PullOptions {MergeOptions = new MergeOptions
+                var options = new PullOptions
                 {
-                    CommitOnSuccess = true,
-                    FailOnConflict = false,
-                    MergeFileFavor = MergeFileFavor.Theirs,
-                    IgnoreWhitespaceChange = true,
-                    FileConflictStrategy = CheckoutFileConflictStrategy.Theirs,
-                    
-                }};
+                    MergeOptions = new MergeOptions
+                    {
+                        CommitOnSuccess = true,
+                        FailOnConflict = false,
+                        MergeFileFavor = MergeFileFavor.Theirs,
+                        IgnoreWhitespaceChange = true,
+                        FileConflictStrategy = CheckoutFileConflictStrategy.Theirs,
+
+                    }
+                };
 
                 try
                 {
