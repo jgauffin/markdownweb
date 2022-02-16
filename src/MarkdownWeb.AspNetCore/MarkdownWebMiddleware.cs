@@ -68,7 +68,19 @@ namespace MarkdownWeb.AspNetCore
                 path += "/";
             }
 
-            if (context.Request.Query["image"].Count > 0 || path.EndsWith(".png"))
+            var isImage = path.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+                          path.EndsWith(".gif", StringComparison.OrdinalIgnoreCase) ||
+                          path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+                          || path.EndsWith(".svg", StringComparison.OrdinalIgnoreCase);
+            if (isImage)
+            {
+                // remove wikipath.
+                var imageUrl = path.Remove(0, _options.WebPath.Value.Length);
+                await ServeImages(path, imageUrl, context.Response);
+                return;
+            }
+
+            if (context.Request.Query["image"].Count > 0)
             {
                 await ServeImages(path, context.Request.Query["image"][0], context.Response);
                 return;

@@ -20,8 +20,8 @@
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
     <RepositoryUrl>https://github.com/jgauffin/markdownweb</RepositoryUrl>
 
-    <PackageReleaseNotes>Adjusted how settings are configured.</PackageReleaseNotes>
-    <version>1.0.7</version>
+    <PackageReleaseNotes>Changed so that images can be directly served.</PackageReleaseNotes>
+    <version>1.0.8</version>
   </PropertyGroup>
 
   <ItemGroup>

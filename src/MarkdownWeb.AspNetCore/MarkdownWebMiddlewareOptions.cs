@@ -68,7 +68,11 @@ namespace MarkdownWeb.AspNetCore
         /// <example>
         ///     "/documentation/"
         /// </example>
-        public PathString WebPath { get; set; } = "/documentation/";
+        public PathString WebPath
+        {
+            get => _webPath;
+            set => _webPath = value.Value?.EndsWith("/") == true ? new PathString(value.Value + "/") : value;
+        }
 
         /// <summary>
         /// Used to customize the git configuration.
@@ -89,5 +93,6 @@ namespace MarkdownWeb.AspNetCore
         }
 
         internal Action<PageServiceConfiguration> PageServiceSettings;
+        private PathString _webPath = "/documentation/";
     }
 }
