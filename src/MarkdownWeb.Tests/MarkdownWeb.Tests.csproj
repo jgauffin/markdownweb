@@ -1,62 +1,62 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net60</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="NSubstitute" version="4.2.2" />
-    <PackageReference Include="FluentAssertions" version="6.2.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-    <PackageReference Include="Microsoft.NETCore.Platforms" version="6.0.1" />
-    <PackageReference Include="Microsoft.CodeCoverage" Version="17.0.0" />
-    <PackageReference Include="xunit" version="2.4.1" />
-    <PackageReference Include="xunit.abstractions" version="2.0.3" />
-    <PackageReference Include="xunit.assert" version="2.4.1" />
-    <PackageReference Include="xunit.core" version="2.4.1" />
-    <PackageReference Include="xunit.extensibility.core" version="2.4.1" />
-    <PackageReference Include="xunit.extensibility.execution" version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\MarkdownWeb\MarkdownWeb.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="TestDocs\FolderTest\index.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestDocs\FolderTest\other.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestDocs\FolderTest\subdocWithLinks.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestDocs\FolderTest\subfolder\twodoc.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestDocs\index.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestDocs\NoDoc\image.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestDocs\NoDoc\TwoDoc\index.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestDocs\NoDoc\OneDoc\index.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestDocs\page.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="TestDocs\withlink.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFramework>netcoreapp3.1</TargetFramework>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="NSubstitute" version="4.2.2" />
+		<PackageReference Include="FluentAssertions" version="6.2.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
+		<PackageReference Include="Microsoft.NETCore.Platforms" version="6.0.1" />
+		<PackageReference Include="Microsoft.CodeCoverage" Version="17.0.0" />
+		<PackageReference Include="xunit" version="2.4.1" />
+		<PackageReference Include="xunit.abstractions" version="2.0.3" />
+		<PackageReference Include="xunit.assert" version="2.4.1" />
+		<PackageReference Include="xunit.core" version="2.4.1" />
+		<PackageReference Include="xunit.extensibility.core" version="2.4.1" />
+		<PackageReference Include="xunit.extensibility.execution" version="2.4.1" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\MarkdownWeb\MarkdownWeb.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="TestDocs\FolderTest\index.md">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="TestDocs\FolderTest\other.md">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="TestDocs\FolderTest\subdocWithLinks.md">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestDocs\FolderTest\subfolder\twodoc.md">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestDocs\index.md">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="TestDocs\NoDoc\image.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="TestDocs\NoDoc\TwoDoc\index.md">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="TestDocs\NoDoc\OneDoc\index.md">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="TestDocs\page.md">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+		<None Update="TestDocs\withlink.md">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 </Project>
 
 
